@@ -1,71 +1,151 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ניהול שרשרת הסיבות ⛓️‍💥</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    /* Style for the import container */
-    #importContainer {
-      transition: max-height 0.5s ease-out, opacity 0.5s ease-out, padding 0.5s ease-out, border-width 0.5s ease-out; /* הוספנו transition גם לפדינג ולגבול */
-      max-height: 0;
-      opacity: 0;
-      overflow: hidden;
-      padding-top: 0;    /* איפוס פדינג עליון ותחתון */
-      padding-bottom: 0;
-      border-width: 0; /* איפוס רוחב הגבול */
-    }
-    #importContainer.visible {
-      max-height: 500px; /* Adjust as needed */
-      opacity: 1;
-      padding-top: 1rem;    /* שחזור ערכי p-4 של Tailwind */
-      padding-bottom: 1rem;
-      padding-left: 1rem;
-      padding-right: 1rem;
-      border-width: 1px;  /* שחזור ערך border של Tailwind */
-    }
-    /* Ensure textarea respects dark mode */
-    textarea {
-      color-scheme: light dark;
-    }
-  </style>
-</head>
-<body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-6 flex flex-col items-center">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ניהול שרשרת הסיבות ⛓️‍💥</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Style for the import container */
+      #importContainer {
+        transition: max-height 0.5s ease-out, opacity 0.5s ease-out,
+          padding 0.5s ease-out, border-width 0.5s ease-out; /* הוספנו transition גם לפדינג ולגבול */
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        padding-top: 0; /* איפוס פדינג עליון ותחתון */
+        padding-bottom: 0;
+        border-width: 0; /* איפוס רוחב הגבול */
+      }
+      #importContainer.visible {
+        max-height: 500px; /* Adjust as needed */
+        opacity: 1;
+        padding-top: 1rem; /* שחזור ערכי p-4 של Tailwind */
+        padding-bottom: 1rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+        border-width: 1px; /* שחזור ערך border של Tailwind */
+      }
+      /* Ensure textarea respects dark mode */
+      textarea {
+        color-scheme: light dark;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-6 flex flex-col items-center"
+  >
+    <h1 class="text-3xl font-bold mb-4 text-center">
+      ניהול שרשרת הסיבות ⛓️‍💥
+    </h1>
+    <div
+      id="status"
+      class="mb-4 text-center text-sm text-gray-600 dark:text-gray-400 min-h-[1em]"
+    >
+      טוען...
+    </div>
 
-  <h1 class="text-3xl font-bold mb-4 text-center">ניהול שרשרת הסיבות ⛓️‍💥</h1>
-  <div id="status" class="mb-4 text-center text-sm text-gray-600 dark:text-gray-400 min-h-[1em]">טוען...</div>
+    <div class="mb-4 flex flex-wrap gap-2 justify-center">
+      <button
+        id="googleSignInBtn"
+        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+      >
+        התחבר בגוגל
+      </button>
+      <button
+        id="newGroupBtn"
+        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 hidden"
+      >
+        ➕ הוסף קבוצה
+      </button>
+      <button
+        id="deleteGroupBtn"
+        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 hidden"
+      >
+        🗑️ מחק קבוצה
+      </button>
+      <button
+        id="importBtn"
+        class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 hidden"
+      >
+        📜 ייבא קבוצות
+      </button>
+    </div>
 
-  <div class="mb-4 flex flex-wrap gap-2 justify-center">
-    <button id="googleSignInBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">התחבר בגוגל</button>
-    <button id="newGroupBtn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 hidden">➕ הוסף קבוצה</button>
-    <button id="deleteGroupBtn" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 hidden">🗑️ מחק קבוצה</button>
-    <button id="importBtn" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 hidden">📜 ייבא קבוצות</button>
-  </div>
+    <div
+      id="importContainer"
+      class="w-full max-w-xl p-4 border rounded-lg bg-gray-100 dark:bg-gray-800"
+    >
+      <h3 class="text-lg font-semibold mb-2">ייבוא קבוצות מטקסט</h3>
+      <p class="text-sm mb-2 text-gray-600 dark:text-gray-400">
+        מבנה: שורת נושא, שורת רמת קושי (1-5), שורות משפטים (עם '*' לנעול), שורה
+        ריקה בין קבוצות.
+      </p>
+      <textarea
+        id="importText"
+        rows="10"
+        class="w-full p-2 border rounded bg-white dark:bg-gray-700 mb-2"
+        placeholder="נושא הקבוצה הראשונה&#10;3&#10;משפט א&#10;*משפט ב (נעול)&#10;&#10;נושא הקבוצה השנייה&#10;1&#10;*משפט ג (נעול)&#10;משפט ד"
+      ></textarea>
+      <button
+        id="submitImportBtn"
+        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+      >
+        בצע ייבוא
+      </button>
+      <div
+        id="importStatus"
+        class="mt-2 text-sm text-gray-600 dark:text-gray-400"
+      ></div>
+    </div>
 
-  <div id="importContainer" class="w-full max-w-xl p-4 border rounded-lg bg-gray-100 dark:bg-gray-800">
-    <h3 class="text-lg font-semibold mb-2">ייבוא קבוצות מטקסט</h3>
-    <p class="text-sm mb-2 text-gray-600 dark:text-gray-400">מבנה: שורת נושא, שורת רמת קושי (1-5), שורות משפטים (עם '*' לנעול), שורה ריקה בין קבוצות.</p>
-    <textarea id="importText" rows="10" class="w-full p-2 border rounded bg-white dark:bg-gray-700 mb-2" placeholder="נושא הקבוצה הראשונה&#10;3&#10;משפט א&#10;*משפט ב (נעול)&#10;&#10;נושא הקבוצה השנייה&#10;1&#10;*משפט ג (נעול)&#10;משפט ד"></textarea>
-    <button id="submitImportBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">בצע ייבוא</button>
-    <div id="importStatus" class="mt-2 text-sm text-gray-600 dark:text-gray-400"></div>
-  </div>
+    <div class="flex items-center mb-6 space-x-2 space-x-reverse">
+      <button
+        id="prevBtn"
+        class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg disabled:opacity-50"
+        disabled
+      >
+        הקודם
+      </button>
+      <input
+        id="groupInput"
+        type="number"
+        min="1"
+        value="1"
+        class="w-16 px-2 py-1 border rounded-lg text-center bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+      />
+      <span id="groupCount" class="text-gray-600 dark:text-gray-400">/ 0</span>
+      <button
+        id="nextBtn"
+        class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg disabled:opacity-50"
+        disabled
+      >
+        הבא
+      </button>
+    </div>
 
-  <div class="flex items-center mb-6 space-x-2 space-x-reverse">
-    <button id="prevBtn" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg disabled:opacity-50" disabled>הקודם</button>
-    <input id="groupInput" type="number" min="1" value="1" class="w-16 px-2 py-1 border rounded-lg text-center bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
-    <span id="groupCount" class="text-gray-600 dark:text-gray-400">/ 0</span>
-    <button id="nextBtn" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg disabled:opacity-50" disabled>הבא</button>
-  </div>
+    <div id="group-container" class="w-full max-w-xl"></div>
 
-  <div id="group-container" class="w-full max-w-xl"></div>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+      import {
+        getAuth,
+        signInAnonymously,
+        onAuthStateChanged,
+        GoogleAuthProvider,
+        signInWithPopup,
+      } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+      import {
+        getDatabase,
+        ref,
+        onValue,
+        update,
+        set,
+        push,
+        child,
+      } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
-    import { getDatabase, ref, onValue, update, set, push, child } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
-  
-    const firebaseConfig = {
+      const firebaseConfig = {
         apiKey: "AIzaSyAGFC_TB8iEMvS2PyxeASj1HH4i66AW4UA",
         authDomain: "trivbio.firebaseapp.com",
         databaseURL: "https://trivbio-default-rtdb.firebaseio.com",
@@ -73,317 +153,397 @@
         storageBucket: "trivbio.appspot.com",
         messagingSenderId: "1097087574583",
         appId: "1:1097087574583:web:b36c0441537a1f596215b2",
-        measurementId: "G-ZY245YB23E"
+        measurementId: "G-ZY245YB23E",
       };
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
-    const groupsRef = ref(db, 'collections/groups');
-  
-    const statusEl = document.getElementById('status');
-    const googleBtn = document.getElementById('googleSignInBtn');
-    const newBtn = document.getElementById('newGroupBtn'); // השם החדש "הוסף קבוצה" ב-HTML
-    const delBtn = document.getElementById('deleteGroupBtn');
-    const importBtn = document.getElementById('importBtn');
-    const importContainer = document.getElementById('importContainer');
-    const importText = document.getElementById('importText');
-    const submitImportBtn = document.getElementById('submitImportBtn');
-    const importStatusEl = document.getElementById('importStatus');
-    const container = document.getElementById('group-container');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const groupInp = document.getElementById('groupInput');
-    const groupCountEl = document.getElementById('groupCount');
-  
-    const TOPICS = ['כללי', 'התא', 'גוף האדם', 'אקולוגיה', 'מעבדה'];
-  
-    let groups = [];
-    let idx = 0;
-    let admin = false;
-    let edit = false;
-    let isAddingNewGroup = false; // *** דגל חדש לציון מצב הוספה ***
-    let newGroupDataBuffer = null; // *** מאגר זמני לנתוני קבוצה חדשה ***
-    let currentAuthUser = null;
-  
-    // --- Authentication ---
-    signInAnonymously(auth).catch((error) => {
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getDatabase(app);
+      const groupsRef = ref(db, "collections/groups");
+
+      const statusEl = document.getElementById("status");
+      const googleBtn = document.getElementById("googleSignInBtn");
+      const newBtn = document.getElementById("newGroupBtn"); // השם החדש "הוסף קבוצה" ב-HTML
+      const delBtn = document.getElementById("deleteGroupBtn");
+      const importBtn = document.getElementById("importBtn");
+      const importContainer = document.getElementById("importContainer");
+      const importText = document.getElementById("importText");
+      const submitImportBtn = document.getElementById("submitImportBtn");
+      const importStatusEl = document.getElementById("importStatus");
+      const container = document.getElementById("group-container");
+      const prevBtn = document.getElementById("prevBtn");
+      const nextBtn = document.getElementById("nextBtn");
+      const groupInp = document.getElementById("groupInput");
+      const groupCountEl = document.getElementById("groupCount");
+
+      const TOPICS = ["כללי", "התא", "גוף האדם", "אקולוגיה", "מעבדה"];
+
+      let groups = [];
+      let idx = 0;
+      let admin = false;
+      let edit = false;
+      let isAddingNewGroup = false; // *** דגל חדש לציון מצב הוספה ***
+      let newGroupDataBuffer = null; // *** מאגר זמני לנתוני קבוצה חדשה ***
+      let currentAuthUser = null;
+
+      // --- Authentication ---
+      signInAnonymously(auth).catch((error) => {
         console.error("Anonymous sign-in failed:", error);
-        statusEl.innerText = 'שגיאה בהתחברות אנונימית.';
-    });
-  
-    const provider = new GoogleAuthProvider();
-  
-    googleBtn.onclick = () => signInWithPopup(auth, provider)
-      .then(result => {})
-      .catch(e => statusEl.innerText = 'שגיאת התחברות גוגל: ' + e.message);
-  
-    onAuthStateChanged(auth, u => {
-      currentAuthUser = u;
-      if (u) {
-        const isGoogleSignIn = u.providerData.some(p => p.providerId === 'google.com');
-        if (isGoogleSignIn) {
-            googleBtn.classList.add('hidden');
+        statusEl.innerText = "שגיאה בהתחברות אנונימית.";
+      });
+
+      const provider = new GoogleAuthProvider();
+
+      googleBtn.onclick = () =>
+        signInWithPopup(auth, provider)
+          .then((result) => {})
+          .catch(
+            (e) => (statusEl.innerText = "שגיאת התחברות גוגל: " + e.message)
+          );
+
+      onAuthStateChanged(auth, (u) => {
+        currentAuthUser = u;
+        if (u) {
+          const isGoogleSignIn = u.providerData.some(
+            (p) => p.providerId === "google.com"
+          );
+          if (isGoogleSignIn) {
+            googleBtn.classList.add("hidden");
             statusEl.innerText = `מחובר: ${u.email}`;
             checkAdminStatus(u.uid);
-        } else {
-            googleBtn.classList.remove('hidden');
-            statusEl.innerText = 'מחובר אנונימית. התחבר עם גוגל לניהול.';
+          } else {
+            googleBtn.classList.remove("hidden");
+            statusEl.innerText = "מחובר אנונימית. התחבר עם גוגל לניהול.";
             admin = false;
             updateAdminUI();
+          }
+          listenForGroups();
+        } else {
+          googleBtn.classList.remove("hidden");
+          statusEl.innerText = "אינך מחובר. התחבר עם גוגל לניהול.";
+          admin = false;
+          updateAdminUI();
+          groups = [];
+          idx = 0;
+          edit = false; // לוודא שלא נשארים במצב עריכה
+          isAddingNewGroup = false; // איפוס דגל
+          render();
+          updateNav();
         }
-        listenForGroups();
-      } else {
-        googleBtn.classList.remove('hidden');
-        statusEl.innerText = 'אינך מחובר. התחבר עם גוגל לניהול.';
-        admin = false;
-        updateAdminUI();
-        groups = [];
-        idx = 0;
-        edit = false; // לוודא שלא נשארים במצב עריכה
-        isAddingNewGroup = false; // איפוס דגל
-        render();
-        updateNav();
-      }
-    });
-  
-    function checkAdminStatus(uid) {
+      });
+
+      function checkAdminStatus(uid) {
         const adminRef = ref(db, `admins/${uid}`);
-        onValue(adminRef, snapshot => {
+        onValue(
+          adminRef,
+          (snapshot) => {
             admin = snapshot.exists() && snapshot.val() === true;
             updateAdminUI();
-             if (!admin && statusEl.innerText.startsWith('מחובר:')) {
-                 statusEl.innerText += ' (לא מנהל)';
-             }
-        }, { onlyOnce: true });
-    }
-  
-    function updateAdminUI() {
-         if (admin) {
-            newBtn.classList.remove('hidden');
-            delBtn.classList.remove('hidden');
-            importBtn.classList.remove('hidden');
-         } else {
-            newBtn.classList.add('hidden');
-            delBtn.classList.add('hidden');
-            importBtn.classList.add('hidden');
-            importContainer.classList.remove('visible');
-            edit = false;
-            isAddingNewGroup = false; // איפוס דגל
-         }
-         // Render רק אם לא במצב הוספה שכבר מרונדר
-         if (!isAddingNewGroup) {
-             render();
-         }
-    }
-  
-    function listenForGroups() {
-        onValue(groupsRef, snap => {
+            if (!admin && statusEl.innerText.startsWith("מחובר:")) {
+              statusEl.innerText += " (לא מנהל)";
+            }
+          },
+          { onlyOnce: true }
+        );
+      }
+
+      function updateAdminUI() {
+        if (admin) {
+          newBtn.classList.remove("hidden");
+          delBtn.classList.remove("hidden");
+          importBtn.classList.remove("hidden");
+        } else {
+          newBtn.classList.add("hidden");
+          delBtn.classList.add("hidden");
+          importBtn.classList.add("hidden");
+          importContainer.classList.remove("visible");
+          edit = false;
+          isAddingNewGroup = false; // איפוס דגל
+        }
+        // Render רק אם לא במצב הוספה שכבר מרונדר
+        if (!isAddingNewGroup) {
+          render();
+        }
+      }
+
+      function listenForGroups() {
+        onValue(
+          groupsRef,
+          (snap) => {
             groups = snap.val() || [];
-            if (!groups.length && admin && !isAddingNewGroup) { statusEl.innerText = 'אין קבוצות. הוסף קבוצה חדשה.'; }
-            else if (!groups.length && !admin) { statusEl.innerText = 'אין קבוצות להצגה.'; }
-            else if (groups.length > 0 && statusEl.innerText.startsWith('אין קבוצות')) { statusEl.innerText = '';}
-  
+            if (!groups.length && admin && !isAddingNewGroup) {
+              statusEl.innerText = "אין קבוצות. הוסף קבוצה חדשה.";
+            } else if (!groups.length && !admin) {
+              statusEl.innerText = "אין קבוצות להצגה.";
+            } else if (
+              groups.length > 0 &&
+              statusEl.innerText.startsWith("אין קבוצות")
+            ) {
+              statusEl.innerText = "";
+            }
+
             // עדכון idx רק אם הוא לא תקין או אם לא במצב הוספה
             if (!isAddingNewGroup && idx >= groups.length) {
-                 idx = Math.max(0, groups.length - 1);
+              idx = Math.max(0, groups.length - 1);
             }
             // עדכן ניווט ורינדור רק אם לא בתהליך הוספה פעיל שמשפיע על התצוגה
             if (!isAddingNewGroup) {
-                updateNav();
-                render();
+              updateNav();
+              render();
             } else {
-                // אם אנחנו כן במצב הוספה, רק נעדכן את הניווט שיראה את המצב החדש הפוטנציאלי
-                updateNav();
+              // אם אנחנו כן במצב הוספה, רק נעדכן את הניווט שיראה את המצב החדש הפוטנציאלי
+              updateNav();
             }
-        }, error => {
+          },
+          (error) => {
             console.error("Error fetching groups:", error);
-            statusEl.innerText = 'שגיאה בקריאת נתונים.';
-        });
-    }
-  
-    // --- Group Actions ---
-    newBtn.onclick = () => { // כפתור "הוסף קבוצה"
-      if (!admin) return;
-  
-      // *** שינוי: רק מכינים נתונים ומציגים טופס, לא שומרים עדיין ***
-      newGroupDataBuffer = {
-          difficulty: 1,
-          topic: 'כללי',
-          sentences: [{ text: '', movable: true }] // מתחילים עם משפט ריק אחד
-      };
-      isAddingNewGroup = true; // מציינים שאנחנו בתהליך הוספה
-      edit = true; // פותחים את מצב העריכה
-      // idx לא משתנה עדיין, הוא יוגדר בעת השמירה
-      statusEl.innerText = 'מלא פרטי קבוצה חדשה ולחץ "שמור וסגור".';
-      render(); // מציגים את טופס העריכה עם הנתונים החדשים
-      updateNav(); // מעדכנים את הניווט (אולי נצטרך להתאים את זה)
-    };
-  
-    delBtn.onclick = () => {
-      if (!admin || groups.length === 0 || isAddingNewGroup) return; // לא ניתן למחוק בזמן הוספה
-      if (!confirm(`למחוק את קבוצה ${idx + 1} לצמיתות?`)) return;
-  
-      const newGroupsArray = groups.filter((_, index) => index !== idx);
-      set(groupsRef, newGroupsArray)
-        .then(() => {
-            statusEl.innerText = 'קבוצה נמחקה';
-            // ה-Listener ידאג לעדכון idx, רינדור וניווט
-        })
-        .catch(e => statusEl.innerText = 'שגיאה במחיקה: ' + e.message);
-    };
-  
-    // --- Import Logic ---
-    importBtn.onclick = () => {
+            statusEl.innerText = "שגיאה בקריאת נתונים.";
+          }
+        );
+      }
+
+      // --- Group Actions ---
+      newBtn.onclick = () => {
+        // כפתור "הוסף קבוצה"
         if (!admin) return;
-        importContainer.classList.toggle('visible');
-        importStatusEl.innerText = '';
-        importText.value = '';
+
+        // *** שינוי: רק מכינים נתונים ומציגים טופס, לא שומרים עדיין ***
+        newGroupDataBuffer = {
+          difficulty: 1,
+          topic: "כללי",
+          sentences: [{ text: "", movable: true }], // מתחילים עם משפט ריק אחד
+        };
+        isAddingNewGroup = true; // מציינים שאנחנו בתהליך הוספה
+        edit = true; // פותחים את מצב העריכה
+        // idx לא משתנה עדיין, הוא יוגדר בעת השמירה
+        statusEl.innerText = 'מלא פרטי קבוצה חדשה ולחץ "שמור וסגור".';
+        render(); // מציגים את טופס העריכה עם הנתונים החדשים
+        updateNav(); // מעדכנים את הניווט (אולי נצטרך להתאים את זה)
+      };
+
+      delBtn.onclick = () => {
+        if (!admin || groups.length === 0 || isAddingNewGroup) return; // לא ניתן למחוק בזמן הוספה
+        if (!confirm(`למחוק את קבוצה ${idx + 1} לצמיתות?`)) return;
+
+        const newGroupsArray = groups.filter((_, index) => index !== idx);
+        set(groupsRef, newGroupsArray)
+          .then(() => {
+            statusEl.innerText = "קבוצה נמחקה";
+            // ה-Listener ידאג לעדכון idx, רינדור וניווט
+          })
+          .catch((e) => (statusEl.innerText = "שגיאה במחיקה: " + e.message));
+      };
+
+      // --- Import Logic ---
+      importBtn.onclick = () => {
+        if (!admin) return;
+        importContainer.classList.toggle("visible");
+        importStatusEl.innerText = "";
+        importText.value = "";
         // אם פותחים את הייבוא, נבטל מצב הוספה אם היה פעיל
-        if (importContainer.classList.contains('visible') && isAddingNewGroup) {
-            isAddingNewGroup = false;
-            edit = false;
-            newGroupDataBuffer = null;
-            render();
-            updateNav();
+        if (importContainer.classList.contains("visible") && isAddingNewGroup) {
+          isAddingNewGroup = false;
+          edit = false;
+          newGroupDataBuffer = null;
+          render();
+          updateNav();
         }
-    };
-  
-    submitImportBtn.onclick = () => {
+      };
+
+      submitImportBtn.onclick = () => {
         if (!admin) return;
         const text = importText.value.trim();
         if (!text) {
-            importStatusEl.innerText = 'תיבת הטקסט ריקה.';
-            return;
+          importStatusEl.innerText = "תיבת הטקסט ריקה.";
+          return;
         }
-  
-        importStatusEl.innerText = 'מעבד נתונים...';
+
+        importStatusEl.innerText = "מעבד נתונים...";
         const parsedGroups = parseImportText(text);
         if (parsedGroups.error) {
-            importStatusEl.innerText = `שגיאת ניתוח: ${parsedGroups.error}`;
-            return;
+          importStatusEl.innerText = `שגיאת ניתוח: ${parsedGroups.error}`;
+          return;
         }
-  
+
         if (parsedGroups.groups.length === 0) {
-            importStatusEl.innerText = 'לא נמצאו קבוצות תקינות בטקסט.';
-            return;
+          importStatusEl.innerText = "לא נמצאו קבוצות תקינות בטקסט.";
+          return;
         }
         importGroupsToFirebase(parsedGroups.groups);
-    };
-  
-    function parseImportText(text) {
+      };
+
+      function parseImportText(text) {
         const blocks = text.split(/\n\s*\n/);
         const newGroups = [];
         let error = null;
-  
+
         blocks.forEach((block, blockIndex) => {
-            if (error) return;
-            const lines = block.trim().split('\n').map(l => l.trim()).filter(l => l);
-  
-            if (lines.length < 3) {
-               if (lines.length > 0) {
-                     error = `בלוק ${blockIndex + 1} חייב להכיל נושא, רמת קושי (שורה 2) ולפחות משפט אחד (משורה 3).`;
-                 } else if (blocks.length === 1) {
-                     error = `נראה שהטקסט אינו מכיל קבוצות תקינות.`;
-                 }
-                return;
+          if (error) return;
+          const lines = block
+            .trim()
+            .split("\n")
+            .map((l) => l.trim())
+            .filter((l) => l);
+
+          if (lines.length < 3) {
+            if (lines.length > 0) {
+              error = `בלוק ${
+                blockIndex + 1
+              } חייב להכיל נושא, רמת קושי (שורה 2) ולפחות משפט אחד (משורה 3).`;
+            } else if (blocks.length === 1) {
+              error = `נראה שהטקסט אינו מכיל קבוצות תקינות.`;
             }
-  
-            const topicLine = lines[0];
-            const topic = TOPICS.includes(topicLine) ? topicLine : 'כללי';
-  
-            let difficulty = 1;
-            const difficultyLine = lines[1];
-            const parsedDifficulty = parseInt(difficultyLine, 10);
-            if (!isNaN(parsedDifficulty) && parsedDifficulty >= 1 && parsedDifficulty <= 5) {
-                difficulty = parsedDifficulty;
-            } else {
-                console.warn(`Invalid or missing difficulty '${difficultyLine}' in block ${blockIndex + 1}. Defaulting to 1.`);
-            }
-  
-            const sentences = lines.slice(2).map(line => {
-                const isLocked = line.startsWith('*');
-                const text = isLocked ? line.substring(1).trim() : line;
-                if (!text) return null;
-                return { text: text, movable: !isLocked };
-            }).filter(s => s !== null);
-  
-            if (sentences.length === 0) {
-                error = `בקבוצה עם נושא "${topicLine}" (בלוק ${blockIndex + 1}) לא נמצאו משפטים תקינים החל מהשורה השלישית.`;
-                return;
-            }
-  
-            newGroups.push({
-                difficulty: difficulty,
-                topic: topic,
-                sentences: sentences
-            });
+            return;
+          }
+
+          const topicLine = lines[0];
+          const topic = TOPICS.includes(topicLine) ? topicLine : "כללי";
+
+          let difficulty = 1;
+          const difficultyLine = lines[1];
+          const parsedDifficulty = parseInt(difficultyLine, 10);
+          if (
+            !isNaN(parsedDifficulty) &&
+            parsedDifficulty >= 1 &&
+            parsedDifficulty <= 5
+          ) {
+            difficulty = parsedDifficulty;
+          } else {
+            console.warn(
+              `Invalid or missing difficulty '${difficultyLine}' in block ${
+                blockIndex + 1
+              }. Defaulting to 1.`
+            );
+          }
+
+          const sentences = lines
+            .slice(2)
+            .map((line) => {
+              const isLocked = line.startsWith("*");
+              const text = isLocked ? line.substring(1).trim() : line;
+              if (!text) return null;
+              return { text: text, movable: !isLocked };
+            })
+            .filter((s) => s !== null);
+
+          if (sentences.length === 0) {
+            error = `בקבוצה עם נושא "${topicLine}" (בלוק ${
+              blockIndex + 1
+            }) לא נמצאו משפטים תקינים החל מהשורה השלישית.`;
+            return;
+          }
+
+          newGroups.push({
+            difficulty: difficulty,
+            topic: topic,
+            sentences: sentences,
+          });
         });
         return { groups: newGroups, error: error };
-    }
-  
-    async function importGroupsToFirebase(parsedGroups) {
+      }
+
+      async function importGroupsToFirebase(parsedGroups) {
         if (!admin) return;
         importStatusEl.innerText = `מייבא ${parsedGroups.length} קבוצות...`;
         try {
-            const updatedGroups = [...groups, ...parsedGroups];
-            await set(groupsRef, updatedGroups);
-            importStatusEl.innerText = `ייבוא ${parsedGroups.length} קבוצות הושלם בהצלחה!`;
-            importText.value = '';
-            importContainer.classList.remove('visible');
-            // ה-listener יטפל בעדכון התצוגה
+          const updatedGroups = [...groups, ...parsedGroups];
+          await set(groupsRef, updatedGroups);
+          importStatusEl.innerText = `ייבוא ${parsedGroups.length} קבוצות הושלם בהצלחה!`;
+          importText.value = "";
+          importContainer.classList.remove("visible");
+          // ה-listener יטפל בעדכון התצוגה
         } catch (e) {
-            console.error("Import error:", e);
-            importStatusEl.innerText = 'שגיאה בייבוא: ' + e.message;
+          console.error("Import error:", e);
+          importStatusEl.innerText = "שגיאה בייבוא: " + e.message;
         }
-    }
-  
-    // --- Rendering Logic ---
-    const topicOptionsHTML = TOPICS.map(t => `<option value="${t}">${t}</option>`).join('');
-    const rowHTML = (text, locked) => `
+      }
+
+      // --- Rendering Logic ---
+      const topicOptionsHTML = TOPICS.map(
+        (t) => `<option value="${t}">${t}</option>`
+      ).join("");
+      const rowHTML = (text, locked) => `
       <div class="sentence-row flex items-center space-x-2 space-x-reverse mb-2">
         <input type="text" value="${text}" class="sentence-input flex-1 p-2 border rounded bg-white dark:bg-gray-700" placeholder="הזן משפט כאן" />
         <label class="inline-flex items-center space-x-1 space-x-reverse">
-          <input type="checkbox" ${locked ? 'checked' : ''} class="lock-checkbox h-5 w-5" /><span>🔒</span>
+          <input type="checkbox" ${
+            locked ? "checked" : ""
+          } class="lock-checkbox h-5 w-5" /><span>🔒</span>
         </label>
         <button type="button" class="removeSentence text-red-500 hover:text-red-700 font-bold">✖️</button>
       </div>`;
-  
-    function view(g) {
-      // פונקציה זו נקראת רק כשאנחנו לא במצב עריכה
-      const currentIdx = idx; // שמירת האינדקס הנוכחי
-      return `
-      <div class="border rounded-2xl shadow-lg p-4 bg-gray-50 dark:bg-gray-800 relative">
-        ${admin ? `<button data-idx="${currentIdx}" id="editBtn" class="absolute top-2 left-2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 text-xl">✏️</button>` : ''}
-        <h2 class="text-2xl font-semibold mb-2">קבוצה ${currentIdx+1} מתוך ${groups.length}</h2>
-        <p class="mb-1">רמת קושי: <span class="font-medium">${g.difficulty}</span></p>
-        <p class="mb-4">נושא: <span class="font-medium">${g.topic || 'לא הוגדר'}</span></p>
-        <h3 class="text-lg font-semibold mb-2">משפטים:</h3>
-        <ul class="list-decimal list-inside space-y-1">
-          ${g.sentences.map(s => `<li>${s.text}${!s.movable ? ' <span class="text-sm text-green-600 dark:text-green-400">🔒</span>' : ''}</li>`).join('')}
-        </ul>
-      </div>`;
-    }
-  
-    function editForm(g) { // g יכול להיות null אם isAddingNewGroup=true
-      const dataToEdit = isAddingNewGroup ? newGroupDataBuffer : g;
-      if (!dataToEdit) {
+
+      function view(g) {
+        // פונקציה זו נקראת רק כשאנחנו לא במצב עריכה
+        const currentIdx = idx; // שמירת האינדקס הנוכחי
+        // *** שינוי כאן: שינוי תוכן הכותרת h2 ***
+        const topicDisplay = g.topic || "כללי"; // הצג "כללי" אם אין נושא
+        const difficultyDisplay = g.difficulty || "?"; // הצג "?" אם אין רמת קושי
+        const title = `${topicDisplay} - רמה ${difficultyDisplay}`;
+
+        return `
+    <div class="border rounded-2xl shadow-lg p-4 bg-gray-50 dark:bg-gray-800 relative">
+      ${
+        admin
+          ? `<button data-idx="${currentIdx}" id="editBtn" class="absolute top-2 left-2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 text-xl">✏️</button>`
+          : ""
+      }
+      {/* *** הכותרת החדשה מוצגת כאן *** */}
+      <h2 class="text-2xl font-semibold mb-4">${title}</h2>
+      {/* הסרנו את השורות שהציגו את רמת הקושי והנושא בנפרד, כי הן עכשיו בכותרת */}
+      {/* <p class="mb-1">רמת קושי: <span class="font-medium">${
+        g.difficulty
+      }</span></p> */}
+      {/* <p class="mb-4">נושא: <span class="font-medium">${
+        g.topic || "לא הוגדר"
+      }</span></p> */}
+      <h3 class="text-lg font-semibold mb-2">משפטים:</h3>
+      <ul class="list-decimal list-inside space-y-1">
+        ${g.sentences
+          .map(
+            (s) =>
+              `<li>${s.text}${
+                !s.movable
+                  ? ' <span class="text-sm text-green-600 dark:text-green-400">🔒</span>'
+                  : ""
+              }</li>`
+          )
+          .join("")}
+      </ul>
+    </div>`;
+      }
+
+      function editForm(g) {
+        // g יכול להיות null אם isAddingNewGroup=true
+        const dataToEdit = isAddingNewGroup ? newGroupDataBuffer : g;
+        if (!dataToEdit) {
           console.error("editForm called without data and not in adding mode.");
           return '<p class="text-red-500">שגיאה בהצגת טופס עריכה.</p>';
-      }
-      const rows = dataToEdit.sentences.map((s) => rowHTML(s.text, !s.movable)).join('');
-      const currentTopic = dataToEdit.topic || 'כללי';
-      const title = isAddingNewGroup ? 'הוספת קבוצה חדשה' : `עריכת קבוצה ${idx+1}`;
-      return `
+        }
+        const rows = dataToEdit.sentences
+          .map((s) => rowHTML(s.text, !s.movable))
+          .join("");
+        const currentTopic = dataToEdit.topic || "כללי";
+        const title = isAddingNewGroup
+          ? "הוספת קבוצה חדשה"
+          : `עריכת קבוצה ${idx + 1}`;
+        return `
       <div class="border rounded-2xl shadow-lg p-4 bg-gray-50 dark:bg-gray-800">
         <h2 class="text-2xl font-semibold mb-2">${title}</h2>
         <form id="editForm" class="space-y-3">
           <div class="flex flex-wrap gap-4 items-center mb-4">
               <label class="block">רמת קושי:
-                  <input id="diffInput" type="number" value="${dataToEdit.difficulty}" min="1" max="5" class="p-1 border rounded bg-white dark:bg-gray-700 w-16" />
+                  <input id="diffInput" type="number" value="${
+                    dataToEdit.difficulty
+                  }" min="1" max="5" class="p-1 border rounded bg-white dark:bg-gray-700 w-16" />
               </label>
               <label class="block">נושא:
                 <select id="topicInput" class="p-1 border rounded bg-white dark:bg-gray-700">
-                  ${TOPICS.map(t => `<option value="${t}" ${t === currentTopic ? 'selected' : ''}>${t}</option>`).join('')}
+                  ${TOPICS.map(
+                    (t) =>
+                      `<option value="${t}" ${
+                        t === currentTopic ? "selected" : ""
+                      }>${t}</option>`
+                  ).join("")}
                  </select>
               </label>
           </div>
@@ -398,209 +558,257 @@
           </div>
         </form>
       </div>`;
-    }
-  
-    function render() {
-      if (edit && isAddingNewGroup) { // אם במצב עריכה והוספה
-          container.innerHTML = editForm(null); // מציגים טופס ריק/עם נתוני ברירת מחדל
-      } else if (edit && admin && groups.length > 0 && idx < groups.length) { // אם במצב עריכה רגיל
-          container.innerHTML = editForm(groups[idx]);
-      } else if (!edit && groups.length > 0 && idx < groups.length) { // אם במצב תצוגה
-          container.innerHTML = view(groups[idx]);
-      } else if (!edit && groups.length === 0 && !isAddingNewGroup) { // אם אין קבוצות ולא מוסיפים
-          container.innerHTML = admin ? '<p class="text-center text-gray-500 dark:text-gray-400">אין קבוצות להצגה. הוסף קבוצה חדשה או ייבא קבוצות.</p>' : '<p class="text-center text-gray-500 dark:text-gray-400">אין קבוצות להצגה.</p>';
-      } else if (!edit && !isAddingNewGroup) { // אם ה-idx לא תקין (יכול לקרות רגעית אחרי מחיקה)
-          console.warn("Render called with invalid index or state, waiting for listener update.");
-           container.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400">טוען...</p>'; // ממתינים לעדכון מה-listener
       }
-      // אם isAddingNewGroup=true ו-edit=false (קורה אחרי ביטול), ה-listener יטפל ברינדור הנכון
-    }
-  
-  
-    // --- Navigation ---
-    function updateNav() {
-      const totalGroups = groups.length;
-      const displayIdx = isAddingNewGroup ? totalGroups : idx; // האינדקס לתצוגה בניווט
-      const displayTotal = isAddingNewGroup ? totalGroups + 1 : totalGroups; // הסה"כ לתצוגה
-  
-      prevBtn.disabled = displayIdx <= 0 || edit; // השבתה גם במצב עריכה
-      nextBtn.disabled = displayIdx >= displayTotal - 1 || edit; // השבתה גם במצב עריכה
-      groupInp.disabled = edit; // השבתה גם במצב עריכה
-      groupInp.value = totalGroups === 0 && !isAddingNewGroup ? 0 : displayIdx + 1;
-      groupInp.max = displayTotal > 0 ? displayTotal : 1;
-      groupInp.min = displayTotal > 0 ? 1 : 0;
-      groupCountEl.innerText = `/ ${displayTotal}`;
-      delBtn.disabled = totalGroups === 0 || !admin || edit; // השבתה גם במצב עריכה
-      newBtn.disabled = edit; // השבתת כפתור הוספה בזמן עריכה
-      importBtn.disabled = edit; // השבתת כפתור ייבוא בזמן עריכה
-    }
-  
-    prevBtn.onclick = () => { if (idx > 0 && !edit) { idx--; render(); updateNav(); } };
-    nextBtn.onclick = () => { if (idx < groups.length - 1 && !edit) { idx++; render(); updateNav(); } };
-    groupInp.onchange = e => {
+
+      function render() {
+        if (edit && isAddingNewGroup) {
+          // אם במצב עריכה והוספה
+          container.innerHTML = editForm(null); // מציגים טופס ריק/עם נתוני ברירת מחדל
+        } else if (edit && admin && groups.length > 0 && idx < groups.length) {
+          // אם במצב עריכה רגיל
+          container.innerHTML = editForm(groups[idx]);
+        } else if (!edit && groups.length > 0 && idx < groups.length) {
+          // אם במצב תצוגה
+          container.innerHTML = view(groups[idx]);
+        } else if (!edit && groups.length === 0 && !isAddingNewGroup) {
+          // אם אין קבוצות ולא מוסיפים
+          container.innerHTML = admin
+            ? '<p class="text-center text-gray-500 dark:text-gray-400">אין קבוצות להצגה. הוסף קבוצה חדשה או ייבא קבוצות.</p>'
+            : '<p class="text-center text-gray-500 dark:text-gray-400">אין קבוצות להצגה.</p>';
+        } else if (!edit && !isAddingNewGroup) {
+          // אם ה-idx לא תקין (יכול לקרות רגעית אחרי מחיקה)
+          console.warn(
+            "Render called with invalid index or state, waiting for listener update."
+          );
+          container.innerHTML =
+            '<p class="text-center text-gray-500 dark:text-gray-400">טוען...</p>'; // ממתינים לעדכון מה-listener
+        }
+        // אם isAddingNewGroup=true ו-edit=false (קורה אחרי ביטול), ה-listener יטפל ברינדור הנכון
+      }
+
+      // --- Navigation ---
+      function updateNav() {
+        const totalGroups = groups.length;
+        const displayIdx = isAddingNewGroup ? totalGroups : idx; // האינדקס לתצוגה בניווט
+        const displayTotal = isAddingNewGroup ? totalGroups + 1 : totalGroups; // הסה"כ לתצוגה
+
+        prevBtn.disabled = displayIdx <= 0 || edit; // השבתה גם במצב עריכה
+        nextBtn.disabled = displayIdx >= displayTotal - 1 || edit; // השבתה גם במצב עריכה
+        groupInp.disabled = edit; // השבתה גם במצב עריכה
+        groupInp.value =
+          totalGroups === 0 && !isAddingNewGroup ? 0 : displayIdx + 1;
+        groupInp.max = displayTotal > 0 ? displayTotal : 1;
+        groupInp.min = displayTotal > 0 ? 1 : 0;
+        groupCountEl.innerText = `/ ${displayTotal}`;
+        delBtn.disabled = totalGroups === 0 || !admin || edit; // השבתה גם במצב עריכה
+        newBtn.disabled = edit; // השבתת כפתור הוספה בזמן עריכה
+        importBtn.disabled = edit; // השבתת כפתור ייבוא בזמן עריכה
+      }
+
+      prevBtn.onclick = () => {
+        if (idx > 0 && !edit) {
+          idx--;
+          render();
+          updateNav();
+        }
+      };
+      nextBtn.onclick = () => {
+        if (idx < groups.length - 1 && !edit) {
+          idx++;
+          render();
+          updateNav();
+        }
+      };
+      groupInp.onchange = (e) => {
         if (edit) return; // לא מאפשרים שינוי בזמן עריכה
         const v = +e.target.value - 1;
-        if (v >= 0 && v < groups.length) { idx = v; render(); updateNav(); }
-        else { e.target.value = idx + 1; } // החזר לערך הקודם אם לא תקין
-    };
-  
-    // --- Edit Form Event Listeners ---
-    container.addEventListener('click', e => {
-      // Edit button
-      if (e.target.id === 'editBtn') {
+        if (v >= 0 && v < groups.length) {
+          idx = v;
+          render();
+          updateNav();
+        } else {
+          e.target.value = idx + 1;
+        } // החזר לערך הקודם אם לא תקין
+      };
+
+      // --- Edit Form Event Listeners ---
+      container.addEventListener("click", (e) => {
+        // Edit button
+        if (e.target.id === "editBtn") {
           if (!admin || edit) return; // מניעה אם לא אדמין או כבר בעריכה
           // const targetIdx = parseInt(e.target.getAttribute('data-idx'), 10); // קבלת האינדקס מהכפתור
           // if (!isNaN(targetIdx) && targetIdx < groups.length) {
           //     idx = targetIdx; // ודא שאנחנו עורכים את האינדקס הנכון
-              edit = true;
-              isAddingNewGroup = false; // מוודאים שאנחנו לא במצב הוספה
-              render();
-              updateNav(); // השבתת ניווט וכו'
+          edit = true;
+          isAddingNewGroup = false; // מוודאים שאנחנו לא במצב הוספה
+          render();
+          updateNav(); // השבתת ניווט וכו'
           // }
           return;
-      }
-      // Cancel button
-      if (e.target.id === 'cancelBtn') {
+        }
+        // Cancel button
+        if (e.target.id === "cancelBtn") {
           const wasAdding = isAddingNewGroup; // שמירת המצב לפני האיפוס
           edit = false;
           isAddingNewGroup = false;
           newGroupDataBuffer = null;
-          statusEl.innerText = wasAdding ? 'הוספת קבוצה בוטלה' : 'עריכה בוטלה';
+          statusEl.innerText = wasAdding ? "הוספת קבוצה בוטלה" : "עריכה בוטלה";
           // אם ביטלנו הוספה של קבוצה ראשונה, idx צריך להיות 0 אבל groups עדיין ריק
           if (wasAdding && groups.length === 0) {
-              idx = 0;
+            idx = 0;
           } else if (wasAdding) {
-              // אם ביטלנו הוספה, נחזור לאינדקס האחרון שהיה קיים
-               idx = Math.max(0, groups.length - 1);
+            // אם ביטלנו הוספה, נחזור לאינדקס האחרון שהיה קיים
+            idx = Math.max(0, groups.length - 1);
           }
           // אם ביטלנו עריכה רגילה, idx נשאר כפי שהיה
           render();
           updateNav();
           return;
-      }
-      // Add Sentence button
-      if (e.target.id === 'addSentence') {
-          const sentencesContainer = document.getElementById('sentences-container');
-          if (sentencesContainer) {
-              const newRowDiv = document.createElement('div');
-              newRowDiv.innerHTML = rowHTML('', false); // הוספת שורה ריקה
-              const newRowElement = newRowDiv.firstElementChild;
-              if (newRowElement) {
-                  sentencesContainer.appendChild(newRowElement);
-                  const firstInput = newRowElement.querySelector('input[type="text"]');
-                  if(firstInput) firstInput.focus(); // פוקוס על השדה החדש
-              }
-          }
-          return;
-      }
-      // Remove Sentence button
-      if (e.target.classList.contains('removeSentence')) {
-          const row = e.target.closest('.sentence-row');
-          const container = row?.closest('#sentences-container');
-          if (row) {
-              // מניעת מחיקת שורה אחרונה
-              if (container && container.querySelectorAll('.sentence-row').length <= 1) {
-                   statusEl.innerText = 'חובה להשאיר לפחות משפט אחד.';
-                   // אפשר להוסיף הדגשה לשורה או משהו ויזואלי
-                   row.animate([ {backgroundColor: 'rgba(255,0,0,0.2)'}, {backgroundColor: 'transparent'} ], { duration: 500 });
-                   return;
-              }
-              row.remove();
-          }
-          return;
-      }
-    });
-  
-    container.addEventListener('submit', e => {
-      e.preventDefault();
-      if (!admin || !edit) return; // רק אם אדמין ובמצב עריכה
-      const form = e.target;
-      if (form.id !== 'editForm') return;
-  
-      statusEl.innerText = 'שומר...';
-  
-      const diffInput = document.getElementById('diffInput');
-      const topicInput = document.getElementById('topicInput');
-      const difficulty = diffInput ? (parseInt(diffInput.value) || 1) : 1;
-      const topic = topicInput ? topicInput.value : 'כללי';
-  
-      const rows = [...form.querySelectorAll('.sentence-row')];
-      let errorOccurred = false;
-      const sentences = rows.map((row) => {
-        const textInput = row.querySelector('.sentence-input');
-        const lockCheckbox = row.querySelector('.lock-checkbox');
-  
-        if (!textInput || !lockCheckbox) {
-            console.error("Malformed sentence row found:", row);
-             statusEl.innerText = 'שגיאה: מבנה שורה לא תקין. לא ניתן לשמור.';
-            errorOccurred = true;
-            return null;
         }
-        const textValue = textInput.value.trim();
-        // מאפשרים שמירת משפטים ריקים כדי לא לאבד מידע בזמן עריכה,
-        // אבל מסננים אותם לפני השמירה הסופית אם רוצים
-         if (!textValue) {
-             // אפשר לבחור אם להתעלם או להחזיר שגיאה
+        // Add Sentence button
+        if (e.target.id === "addSentence") {
+          const sentencesContainer = document.getElementById(
+            "sentences-container"
+          );
+          if (sentencesContainer) {
+            const newRowDiv = document.createElement("div");
+            newRowDiv.innerHTML = rowHTML("", false); // הוספת שורה ריקה
+            const newRowElement = newRowDiv.firstElementChild;
+            if (newRowElement) {
+              sentencesContainer.appendChild(newRowElement);
+              const firstInput =
+                newRowElement.querySelector('input[type="text"]');
+              if (firstInput) firstInput.focus(); // פוקוס על השדה החדש
+            }
+          }
+          return;
+        }
+        // Remove Sentence button
+        if (e.target.classList.contains("removeSentence")) {
+          const row = e.target.closest(".sentence-row");
+          const container = row?.closest("#sentences-container");
+          if (row) {
+            // מניעת מחיקת שורה אחרונה
+            if (
+              container &&
+              container.querySelectorAll(".sentence-row").length <= 1
+            ) {
+              statusEl.innerText = "חובה להשאיר לפחות משפט אחד.";
+              // אפשר להוסיף הדגשה לשורה או משהו ויזואלי
+              row.animate(
+                [
+                  { backgroundColor: "rgba(255,0,0,0.2)" },
+                  { backgroundColor: "transparent" },
+                ],
+                { duration: 500 }
+              );
+              return;
+            }
+            row.remove();
+          }
+          return;
+        }
+      });
+
+      container.addEventListener("submit", (e) => {
+        e.preventDefault();
+        if (!admin || !edit) return; // רק אם אדמין ובמצב עריכה
+        const form = e.target;
+        if (form.id !== "editForm") return;
+
+        statusEl.innerText = "שומר...";
+
+        const diffInput = document.getElementById("diffInput");
+        const topicInput = document.getElementById("topicInput");
+        const difficulty = diffInput ? parseInt(diffInput.value) || 1 : 1;
+        const topic = topicInput ? topicInput.value : "כללי";
+
+        const rows = [...form.querySelectorAll(".sentence-row")];
+        let errorOccurred = false;
+        const sentences = rows
+          .map((row) => {
+            const textInput = row.querySelector(".sentence-input");
+            const lockCheckbox = row.querySelector(".lock-checkbox");
+
+            if (!textInput || !lockCheckbox) {
+              console.error("Malformed sentence row found:", row);
+              statusEl.innerText = "שגיאה: מבנה שורה לא תקין. לא ניתן לשמור.";
+              errorOccurred = true;
+              return null;
+            }
+            const textValue = textInput.value.trim();
+            // מאפשרים שמירת משפטים ריקים כדי לא לאבד מידע בזמן עריכה,
+            // אבל מסננים אותם לפני השמירה הסופית אם רוצים
+            if (!textValue) {
+              // אפשר לבחור אם להתעלם או להחזיר שגיאה
               console.warn("Empty sentence found, skipping row:", row);
               return null; // התעלמות ממשפטים ריקים
-             /*
+              /*
              statusEl.innerText = 'שגיאה: לא ניתן לשמור משפט ריק.';
              errorOccurred = true;
              return null; // עצירת השמירה
              */
-         }
-        return {
-          text: textValue,
-          movable: !lockCheckbox.checked
-        };
-      }).filter(s => s !== null); // סינון משפטים ריקים (nulls)
-  
-      if (errorOccurred) return;
-  
-      if (sentences.length === 0) {
-          statusEl.innerText = 'שגיאה: יש להזין לפחות משפט אחד תקין.';
+            }
+            return {
+              text: textValue,
+              movable: !lockCheckbox.checked,
+            };
+          })
+          .filter((s) => s !== null); // סינון משפטים ריקים (nulls)
+
+        if (errorOccurred) return;
+
+        if (sentences.length === 0) {
+          statusEl.innerText = "שגיאה: יש להזין לפחות משפט אחד תקין.";
           return;
-      }
-  
-      const finalGroupData = { difficulty, topic, sentences };
-      const wasAdding = isAddingNewGroup; // בדיקה אם היינו במצב הוספה
-  
-      // *** שינוי: החלטה אם לעדכן או להוסיף ***
-      let savePromise;
-      let newIndex = groups.length; // האינדקס החדש אם זו הוספה
-  
-      if (wasAdding) {
+        }
+
+        const finalGroupData = { difficulty, topic, sentences };
+        const wasAdding = isAddingNewGroup; // בדיקה אם היינו במצב הוספה
+
+        // *** שינוי: החלטה אם לעדכן או להוסיף ***
+        let savePromise;
+        let newIndex = groups.length; // האינדקס החדש אם זו הוספה
+
+        if (wasAdding) {
           // הוספת קבוצה חדשה בסוף המערך
-          savePromise = set(ref(db, `collections/groups/${newIndex}`), finalGroupData);
-      } else {
+          savePromise = set(
+            ref(db, `collections/groups/${newIndex}`),
+            finalGroupData
+          );
+        } else {
           // עדכון קבוצה קיימת באינדקס הנוכחי (idx)
-          savePromise = update(ref(db, `collections/groups/${idx}`), finalGroupData);
-      }
-  
-      savePromise
-        .then(() => {
-            statusEl.innerText = wasAdding ? 'קבוצה חדשה נשמרה בהצלחה' : 'נשמר בהצלחה';
+          savePromise = update(
+            ref(db, `collections/groups/${idx}`),
+            finalGroupData
+          );
+        }
+
+        savePromise
+          .then(() => {
+            statusEl.innerText = wasAdding
+              ? "קבוצה חדשה נשמרה בהצלחה"
+              : "נשמר בהצלחה";
             edit = false;
             isAddingNewGroup = false;
             newGroupDataBuffer = null;
             // אם הוספנו, נעבור להציג את הקבוצה החדשה שנוספה
             if (wasAdding) {
-                idx = newIndex; // עדכון האינדקס הפעיל לאינדקס החדש
-                // ה-listener יטען את הנתונים מחדש ויפעיל render ו-updateNav
+              idx = newIndex; // עדכון האינדקס הפעיל לאינדקס החדש
+              // ה-listener יטען את הנתונים מחדש ויפעיל render ו-updateNav
             } else {
-                // אם עדכנו, ה-listener יטפל בעדכון התצוגה
-                render(); // אפשר לרנדר מיד למצב תצוגה
-                updateNav();
+              // אם עדכנו, ה-listener יטפל בעדכון התצוגה
+              render(); // אפשר לרנדר מיד למצב תצוגה
+              updateNav();
             }
             // ה-Listener של Firebase יבטיח שהתצוגה תתעדכן סופית עם הנתונים מהשרת
-        })
-        .catch(e => {
+          })
+          .catch((e) => {
             console.error("Save error:", e);
-            statusEl.innerText = 'שגיאה בשמירה: ' + e.message;
+            statusEl.innerText = "שגיאה בשמירה: " + e.message;
             // משאירים במצב עריכה כדי שהמשתמש יוכל לתקן ולנסות שוב
-        });
-    });
-  </script>
-
-</body>
+          });
+      });
+    </script>
+  </body>
 </html>
