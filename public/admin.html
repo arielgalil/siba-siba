@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ניהול קבוצות</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-6 flex flex-col items-center">
+
+  <h1 class="text-3xl font-bold mb-4 text-center">ניהול קבוצות</h1>
+  <div id="status" class="mb-4 text-center text-sm text-gray-600 dark:text-gray-400">טוען...</div>
+
+  <!-- כפתורי התחברות ופעולות -->
+  <div class="mb-4 flex flex-wrap gap-2 justify-center">
+    <button id="googleSignInBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">התחבר בגוגל</button>
+    <button id="newGroupBtn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 hidden">➕ קבוצה חדשה</button>
+    <button id="deleteGroupBtn" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 hidden">🗑️ מחק קבוצה</button>
+  </div>
+
+  <!-- ניווט בין קבוצות -->
+  <div class="flex items-center mb-6 space-x-2 space-x-reverse">
+    <button id="prevBtn" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg disabled:opacity-50" disabled>הקודם</button>
+    <input id="groupInput" type="number" min="1" value="1" class="w-16 px-2 py-1 border rounded-lg text-center bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
+    <button id="nextBtn" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg disabled:opacity-50" disabled>הבא</button>
+  </div>
+
+  <!-- מיכל הצגת קבוצות -->
+  <div id="group-container" class="w-full max-w-xl"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+    import { getDatabase, ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
+
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAGFC_TB8iEMvS2PyxeASj1HH4i66AW4UA",
+      authDomain: "trivbio.firebaseapp.com",
+      databaseURL: "https://trivbio-default-rtdb.firebaseio.com",
+      projectId: "trivbio",
+      storageBucket: "trivbio.appspot.com",
+      messagingSenderId: "1097087574583",
+      appId: "1:1097087574583:web:b36c0441537a1f596215b2",
+      measurementId: "G-ZY245YB23E"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    // DOM אלמנטים
+    const statusEl = document.getElementById('status');
+    const googleBtn = document.getElementById('googleSignInBtn');
+    const newBtn = document.getElementById('newGroupBtn');
+    const delBtn = document.getElementById('deleteGroupBtn');
+    const container = document.getElementById('group-container');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const groupInp = document.getElementById('groupInput');
+
+    let groups = [];
+    let idx = 0;
+    let admin = false;
+    let edit = false;
+
+    // התחברות
+    signInAnonymously(auth).catch(()=>{});
+    const provider = new GoogleAuthProvider();
+
+    googleBtn.onclick = () => signInWithPopup(auth, provider)
+      .then(r => {
+        admin = true;
+        statusEl.innerText = `מחובר: ${r.user.email}`;
+        googleBtn.classList.add('hidden');
+        newBtn.classList.remove('hidden');
+        delBtn.classList.remove('hidden');
+        render();
+      })
+      .catch(e => statusEl.innerText = 'שגיאת גוגל: ' + e.message);
+
+    onAuthStateChanged(auth, u => {
+      if (!u) return;
+      if (u.providerData.some(p => p.providerId === 'google.com')) googleBtn.classList.add('hidden');
+      onValue(ref(db, `admins/${u.uid}`), s => { admin = !!s.val(); if (admin) { newBtn.classList.remove('hidden'); delBtn.classList.remove('hidden'); } render(); });
+      onValue(ref(db, 'collections/groups'), snap => {
+        groups = snap.val() || [];
+        if (!groups.length) { statusEl.innerText = 'אין קבוצות.'; return; }
+        if (idx >= groups.length) idx = groups.length - 1;
+        statusEl.innerText = '';
+        updateNav();
+        render();
+      });
+    });
+
+    // פעולות קבוצות
+    newBtn.onclick = () => {
+      const newIndex = groups.length;
+      set(ref(db, `collections/groups/${newIndex}`), { difficulty: 1, sentences: [{ text: 'משפט חדש', movable: true }] })
+        .then(() => { statusEl.innerText = 'קבוצה חדשה נוצרה'; idx = newIndex; edit = true; render(); })
+        .catch(e => statusEl.innerText = 'שגיאה ביצירה: ' + e.message);
+    };
+
+    delBtn.onclick = () => {
+      if (!confirm('למחוק קבוצה זו לצמיתות?')) return;
+      set(ref(db, `collections/groups/${idx}`), null)
+        .then(() => { statusEl.innerText = 'קבוצה נמחקה'; idx = Math.max(0, idx - 1); edit = false; render(); })
+        .catch(e => statusEl.innerText = 'שגיאה במחיקה: ' + e.message);
+    };
+
+    // תצוגה
+    const rowHTML = (text, locked, i) => `
+      <div class="sentence-row flex items-center space-x-2 space-x-reverse">
+        <input type="text" name="text${i}" value="${text}" class="flex-1 p-2 border rounded bg-white dark:bg-gray-700" />
+        <label class="inline-flex items-center space-x-1 space-x-reverse">
+          <input type="checkbox" name="lock${i}" ${locked ? 'checked' : ''} class="h-5 w-5" /><span>🔒</span>
+        </label>
+        <button type="button" class="removeSentence text-red-500">✖️</button>
+      </div>`;
+
+    function view(g) {
+      return `
+      <div class="border rounded-2xl shadow-lg p-4 bg-gray-50 dark:bg-gray-800 relative">
+        ${admin ? '<button id="editBtn" class="absolute top-2 left-2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200">✏️</button>' : ''}
+        <h2 class="text-2xl font-semibold mb-2">קבוצה ${idx+1}/${groups.length}</h2>
+        <p class="mb-4">רמת קושי: <span class="font-medium">${g.difficulty}</span></p>
+        <ul class="list-decimal list-inside space-y-1">
+          ${g.sentences.map(s => `<li>${s.text}${!s.movable ? ' <span class="text-sm text-green-600">🔒</span>' : ''}</li>`).join('')}
+        </ul>
+      </div>`;
+    }
+
+    function editForm(g) {
+      const rows = g.sentences.map((s, i) => rowHTML(s.text, !s.movable, i)).join('');
+      return `
+      <div class="border rounded-2xl shadow-lg p-4 bg-gray-50 dark:bg-gray-800">
+        <h2 class="text-2xl font-semibold mb-2">עריכת קבוצה ${idx+1}</h2>
+        <label class="block mb-2">רמת קושי: 
+          <input id="diffInput" type="number" value="${g.difficulty}" min="1" max="5" class="p-1 border rounded bg-white dark:bg-gray-700" />
+        </label>
+        <form id="editForm" class="space-y-2">
+          ${rows}
+          <button type="button" id="addSentence" class="mt-2 px-3 py-1 bg-gray-300 dark:bg-gray-700 rounded">➕ הוסף משפט</button>
+          <div class="flex justify-between mt-4">
+            <button type="button" id="cancelBtn" class="px-4 py-2 bg-red-400 text-white rounded">ביטול</button>
+            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded">שמור</button>
+          </div>
+        </form>
+      </div>`;
+    }
+
+    function render() {
+      const g = groups[idx];
+      if (!g) return;
+      container.innerHTML = (edit && admin) ? editForm(g) : view(g);
+    }
+
+    // ניווט
+    function updateNav() {
+      prevBtn.disabled = idx <= 0;
+      nextBtn.disabled = idx >= groups.length - 1;
+      groupInp.value = idx + 1;
+      groupInp.max = groups.length;
+    }
+    prevBtn.onclick = () => { if (idx > 0) { idx--; updateNav(); render(); } };
+    nextBtn.onclick = () => { if (idx < groups.length - 1) { idx++; updateNav(); render(); } };
+    groupInp.onchange = e => { const v = +e.target.value - 1; if (v >= 0 && v < groups.length) { idx = v; updateNav(); render(); } };
+
+    // אירועי עריכה
+    container.addEventListener('click', e => {
+      if (e.target.id === 'editBtn') { edit = true; render(); }
+      if (e.target.id === 'cancelBtn') { edit = false; render(); }
+      if (e.target.id === 'addSentence') {
+        const form = document.getElementById('editForm');
+        const count = form.querySelectorAll('.sentence-row').length;
+        form.insertAdjacentHTML('afterbegin', rowHTML('', false, count));
+      }
+      if (e.target.classList.contains('removeSentence')) e.target.closest('.sentence-row').remove();
+    });
+
+    container.addEventListener('submit', e => {
+      e.preventDefault();
+      const form = e.target;
+      const diff = parseInt(document.getElementById('diffInput').value) || 1;
+      const rows = [...form.querySelectorAll('.sentence-row')];
+      const sentences = rows.map((row, i) => ({
+        text: row.querySelector(`input[name="text${i}"]`).value,
+        movable: !row.querySelector(`input[name="lock${i}"]`).checked
+      }));
+      update(ref(db, `collections/groups/${idx}`), { difficulty: diff, sentences })
+        .then(() => { statusEl.innerText = 'נשמר'; edit = false; render(); })
+        .catch(e => statusEl.innerText = 'שגיאה: ' + e.message);
+    });
+  </script>
+
+</body>
+</html>
