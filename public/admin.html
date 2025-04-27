@@ -8,14 +8,22 @@
   <style>
     /* Style for the import container */
     #importContainer {
-      transition: max-height 0.5s ease-out, opacity 0.5s ease-out;
+      transition: max-height 0.5s ease-out, opacity 0.5s ease-out, padding 0.5s ease-out, border-width 0.5s ease-out; /* הוספנו transition גם לפדינג ולגבול */
       max-height: 0;
       opacity: 0;
       overflow: hidden;
+      padding-top: 0;    /* איפוס פדינג עליון ותחתון */
+      padding-bottom: 0;
+      border-width: 0; /* איפוס רוחב הגבול */
     }
     #importContainer.visible {
       max-height: 500px; /* Adjust as needed */
       opacity: 1;
+      padding-top: 1rem;    /* שחזור ערכי p-4 של Tailwind */
+      padding-bottom: 1rem;
+      padding-left: 1rem;
+      padding-right: 1rem;
+      border-width: 1px;  /* שחזור ערך border של Tailwind */
     }
     /* Ensure textarea respects dark mode */
     textarea {
@@ -35,7 +43,7 @@
     <button id="importBtn" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 hidden">📜 ייבא קבוצות</button>
   </div>
 
-  <div id="importContainer" class="w-full max-w-xl mb-6 p-4 border rounded-lg bg-gray-100 dark:bg-gray-800">
+  <div id="importContainer" class="w-full max-w-xl p-4 border rounded-lg bg-gray-100 dark:bg-gray-800">
     <h3 class="text-lg font-semibold mb-2">ייבוא קבוצות מטקסט</h3>
     <p class="text-sm mb-2 text-gray-600 dark:text-gray-400">מבנה: שורת נושא, שורת רמת קושי (1-5), שורות משפטים (עם '*' לנעול), שורה ריקה בין קבוצות.</p>
     <textarea id="importText" rows="10" class="w-full p-2 border rounded bg-white dark:bg-gray-700 mb-2" placeholder="נושא הקבוצה הראשונה&#10;3&#10;משפט א&#10;*משפט ב (נעול)&#10;&#10;נושא הקבוצה השנייה&#10;1&#10;*משפט ג (נעול)&#10;משפט ד"></textarea>
