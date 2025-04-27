@@ -3,37 +3,60 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ניהול קבוצות</title>
+  <title>ניהול שרשרת הסיבות ⛓️‍💥</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Style for the import container */
+    #importContainer {
+      transition: max-height 0.5s ease-out, opacity 0.5s ease-out;
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+    }
+    #importContainer.visible {
+      max-height: 500px; /* Adjust as needed */
+      opacity: 1;
+    }
+    /* Ensure textarea respects dark mode */
+    textarea {
+      color-scheme: light dark;
+    }
+  </style>
 </head>
 <body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-6 flex flex-col items-center">
 
-  <h1 class="text-3xl font-bold mb-4 text-center">ניהול קבוצות</h1>
-  <div id="status" class="mb-4 text-center text-sm text-gray-600 dark:text-gray-400">טוען...</div>
+  <h1 class="text-3xl font-bold mb-4 text-center">ניהול שרשרת הסיבות ⛓️‍💥</h1>
+  <div id="status" class="mb-4 text-center text-sm text-gray-600 dark:text-gray-400 min-h-[1em]">טוען...</div>
 
-  <!-- כפתורי התחברות ופעולות -->
   <div class="mb-4 flex flex-wrap gap-2 justify-center">
     <button id="googleSignInBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">התחבר בגוגל</button>
     <button id="newGroupBtn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 hidden">➕ קבוצה חדשה</button>
     <button id="deleteGroupBtn" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 hidden">🗑️ מחק קבוצה</button>
+    <button id="importBtn" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 hidden">📜 ייבא קבוצות</button>
   </div>
 
-  <!-- ניווט בין קבוצות -->
+  <div id="importContainer" class="w-full max-w-xl mb-6 p-4 border rounded-lg bg-gray-100 dark:bg-gray-800">
+    <h3 class="text-lg font-semibold mb-2">ייבוא קבוצות מטקסט</h3>
+    <p class="text-sm mb-2 text-gray-600 dark:text-gray-400">מבנה: שורת נושא, שורת רמת קושי (1-5), שורות משפטים (עם '*' לנעול), שורה ריקה בין קבוצות.</p>
+    <textarea id="importText" rows="10" class="w-full p-2 border rounded bg-white dark:bg-gray-700 mb-2" placeholder="נושא הקבוצה הראשונה&#10;3&#10;משפט א&#10;*משפט ב (נעול)&#10;&#10;נושא הקבוצה השנייה&#10;1&#10;*משפט ג (נעול)&#10;משפט ד"></textarea>
+    <button id="submitImportBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">בצע ייבוא</button>
+    <div id="importStatus" class="mt-2 text-sm text-gray-600 dark:text-gray-400"></div>
+  </div>
+
   <div class="flex items-center mb-6 space-x-2 space-x-reverse">
     <button id="prevBtn" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg disabled:opacity-50" disabled>הקודם</button>
     <input id="groupInput" type="number" min="1" value="1" class="w-16 px-2 py-1 border rounded-lg text-center bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
+    <span id="groupCount" class="text-gray-600 dark:text-gray-400">/ 0</span>
     <button id="nextBtn" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg disabled:opacity-50" disabled>הבא</button>
   </div>
 
-  <!-- מיכל הצגת קבוצות -->
   <div id="group-container" class="w-full max-w-xl"></div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
     import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
-    import { getDatabase, ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
+    import { getDatabase, ref, onValue, update, set, push, child } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
 
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyAGFC_TB8iEMvS2PyxeASj1HH4i66AW4UA",
       authDomain: "trivbio.firebaseapp.com",
@@ -44,152 +67,432 @@
       appId: "1:1097087574583:web:b36c0441537a1f596215b2",
       measurementId: "G-ZY245YB23E"
     };
-
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getDatabase(app);
+    const groupsRef = ref(db, 'collections/groups');
 
-    // DOM אלמנטים
     const statusEl = document.getElementById('status');
     const googleBtn = document.getElementById('googleSignInBtn');
     const newBtn = document.getElementById('newGroupBtn');
     const delBtn = document.getElementById('deleteGroupBtn');
+    const importBtn = document.getElementById('importBtn');
+    const importContainer = document.getElementById('importContainer');
+    const importText = document.getElementById('importText');
+    const submitImportBtn = document.getElementById('submitImportBtn');
+    const importStatusEl = document.getElementById('importStatus');
     const container = document.getElementById('group-container');
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
     const groupInp = document.getElementById('groupInput');
+    const groupCountEl = document.getElementById('groupCount');
+
+    const TOPICS = ['כללי', 'התא', 'גוף האדם', 'אקולוגיה', 'מעבדה'];
 
     let groups = [];
     let idx = 0;
     let admin = false;
     let edit = false;
+    let currentAuthUser = null;
 
-    // התחברות
-    signInAnonymously(auth).catch(()=>{});
+    // --- Authentication ---
+    signInAnonymously(auth).catch((error) => {
+        console.error("Anonymous sign-in failed:", error);
+        statusEl.innerText = 'שגיאה בהתחברות אנונימית.';
+    });
+
     const provider = new GoogleAuthProvider();
 
     googleBtn.onclick = () => signInWithPopup(auth, provider)
-      .then(r => {
-        admin = true;
-        statusEl.innerText = `מחובר: ${r.user.email}`;
-        googleBtn.classList.add('hidden');
-        newBtn.classList.remove('hidden');
-        delBtn.classList.remove('hidden');
-        render();
-      })
-      .catch(e => statusEl.innerText = 'שגיאת גוגל: ' + e.message);
+      .then(result => {})
+      .catch(e => statusEl.innerText = 'שגיאת התחברות גוגל: ' + e.message);
 
     onAuthStateChanged(auth, u => {
-      if (!u) return;
-      if (u.providerData.some(p => p.providerId === 'google.com')) googleBtn.classList.add('hidden');
-      onValue(ref(db, `admins/${u.uid}`), s => { admin = !!s.val(); if (admin) { newBtn.classList.remove('hidden'); delBtn.classList.remove('hidden'); } render(); });
-      onValue(ref(db, 'collections/groups'), snap => {
-        groups = snap.val() || [];
-        if (!groups.length) { statusEl.innerText = 'אין קבוצות.'; return; }
-        if (idx >= groups.length) idx = groups.length - 1;
-        statusEl.innerText = '';
-        updateNav();
+      currentAuthUser = u;
+      if (u) {
+        const isGoogleSignIn = u.providerData.some(p => p.providerId === 'google.com');
+        if (isGoogleSignIn) {
+            googleBtn.classList.add('hidden');
+            statusEl.innerText = `מחובר: ${u.email}`;
+            checkAdminStatus(u.uid);
+        } else {
+            googleBtn.classList.remove('hidden');
+            statusEl.innerText = 'מחובר אנונימית. התחבר עם גוגל לניהול.';
+            admin = false;
+            updateAdminUI();
+        }
+        listenForGroups();
+      } else {
+        googleBtn.classList.remove('hidden');
+        statusEl.innerText = 'אינך מחובר. התחבר עם גוגל לניהול.';
+        admin = false;
+        updateAdminUI();
+        groups = [];
+        idx = 0;
         render();
-      });
+        updateNav();
+      }
     });
 
-    // פעולות קבוצות
+    function checkAdminStatus(uid) {
+        const adminRef = ref(db, `admins/${uid}`);
+        onValue(adminRef, snapshot => {
+            admin = snapshot.exists() && snapshot.val() === true;
+            updateAdminUI();
+             if (!admin && statusEl.innerText.startsWith('מחובר:')) {
+                 statusEl.innerText += ' (לא מנהל)';
+             }
+        }, { onlyOnce: true });
+    }
+
+    function updateAdminUI() {
+         if (admin) {
+            newBtn.classList.remove('hidden');
+            delBtn.classList.remove('hidden');
+            importBtn.classList.remove('hidden');
+         } else {
+            newBtn.classList.add('hidden');
+            delBtn.classList.add('hidden');
+            importBtn.classList.add('hidden');
+            importContainer.classList.remove('visible');
+            edit = false;
+         }
+         render();
+    }
+
+    function listenForGroups() {
+        onValue(groupsRef, snap => {
+            groups = snap.val() || [];
+            if (!groups.length && admin) { statusEl.innerText = 'אין קבוצות. צור קבוצה חדשה.'; }
+            else if (!groups.length && !admin) { statusEl.innerText = 'אין קבוצות להצגה.'; }
+            else if (groups.length > 0 && statusEl.innerText.startsWith('אין קבוצות')) { statusEl.innerText = '';}
+
+            if (idx >= groups.length) idx = Math.max(0, groups.length - 1);
+            updateNav();
+            render();
+        }, error => {
+            console.error("Error fetching groups:", error);
+            statusEl.innerText = 'שגיאה בקריאת נתונים.';
+        });
+    }
+
+    // --- Group Actions ---
     newBtn.onclick = () => {
+      if (!admin) return;
       const newIndex = groups.length;
-      set(ref(db, `collections/groups/${newIndex}`), { difficulty: 1, sentences: [{ text: 'משפט חדש', movable: true }] })
-        .then(() => { statusEl.innerText = 'קבוצה חדשה נוצרה'; idx = newIndex; edit = true; render(); })
+      const newGroupData = {
+          difficulty: 1,
+          topic: 'כללי',
+          sentences: [{ text: 'משפט לדוגמה', movable: true }]
+      };
+      set(ref(db, `collections/groups/${newIndex}`), newGroupData)
+        .then(() => {
+            statusEl.innerText = 'קבוצה חדשה נוצרה';
+            idx = newIndex;
+            edit = true;
+            render();
+            updateNav();
+        })
         .catch(e => statusEl.innerText = 'שגיאה ביצירה: ' + e.message);
     };
 
     delBtn.onclick = () => {
-      if (!confirm('למחוק קבוצה זו לצמיתות?')) return;
-      set(ref(db, `collections/groups/${idx}`), null)
-        .then(() => { statusEl.innerText = 'קבוצה נמחקה'; idx = Math.max(0, idx - 1); edit = false; render(); })
+      if (!admin || groups.length === 0) return;
+      if (!confirm(`למחוק את קבוצה ${idx + 1} לצמיתות?`)) return;
+
+      const newGroupsArray = groups.filter((_, index) => index !== idx);
+      set(groupsRef, newGroupsArray)
+        .then(() => {
+            statusEl.innerText = 'קבוצה נמחקה';
+            if (idx >= newGroupsArray.length) {
+               idx = Math.max(0, newGroupsArray.length - 1);
+            }
+            edit = false;
+            // Listener will call render() and updateNav()
+        })
         .catch(e => statusEl.innerText = 'שגיאה במחיקה: ' + e.message);
     };
 
-    // תצוגה
-    const rowHTML = (text, locked, i) => `
-      <div class="sentence-row flex items-center space-x-2 space-x-reverse">
-        <input type="text" name="text${i}" value="${text}" class="flex-1 p-2 border rounded bg-white dark:bg-gray-700" />
+    // --- Import Logic ---
+    importBtn.onclick = () => {
+        if (!admin) return;
+        importContainer.classList.toggle('visible');
+        importStatusEl.innerText = '';
+        importText.value = '';
+    };
+
+    submitImportBtn.onclick = () => {
+        if (!admin) return;
+        const text = importText.value.trim();
+        if (!text) {
+            importStatusEl.innerText = 'תיבת הטקסט ריקה.';
+            return;
+        }
+
+        importStatusEl.innerText = 'מעבד נתונים...';
+        const parsedGroups = parseImportText(text);
+        if (parsedGroups.error) {
+            importStatusEl.innerText = `שגיאת ניתוח: ${parsedGroups.error}`;
+            return;
+        }
+
+        if (parsedGroups.groups.length === 0) {
+            importStatusEl.innerText = 'לא נמצאו קבוצות תקינות בטקסט.';
+            return;
+        }
+        importGroupsToFirebase(parsedGroups.groups);
+    };
+
+    function parseImportText(text) {
+        const blocks = text.split(/\n\s*\n/);
+        const newGroups = [];
+        let error = null;
+
+        blocks.forEach((block, blockIndex) => {
+            if (error) return;
+            const lines = block.trim().split('\n').map(l => l.trim()).filter(l => l);
+
+            if (lines.length < 3) {
+               if (lines.length > 0) {
+                     error = `בלוק ${blockIndex + 1} חייב להכיל נושא, רמת קושי (שורה 2) ולפחות משפט אחד (משורה 3).`;
+                 } else if (blocks.length === 1) {
+                     error = `נראה שהטקסט אינו מכיל קבוצות תקינות.`;
+                 }
+                return;
+            }
+
+            const topicLine = lines[0];
+            const topic = TOPICS.includes(topicLine) ? topicLine : 'כללי';
+
+            let difficulty = 1;
+            const difficultyLine = lines[1];
+            const parsedDifficulty = parseInt(difficultyLine, 10);
+            if (!isNaN(parsedDifficulty) && parsedDifficulty >= 1 && parsedDifficulty <= 5) {
+                difficulty = parsedDifficulty;
+            } else {
+                console.warn(`Invalid or missing difficulty '${difficultyLine}' in block ${blockIndex + 1}. Defaulting to 1.`);
+            }
+
+            const sentences = lines.slice(2).map(line => {
+                const isLocked = line.startsWith('*');
+                const text = isLocked ? line.substring(1).trim() : line;
+                if (!text) return null;
+                return { text: text, movable: !isLocked };
+            }).filter(s => s !== null);
+
+            if (sentences.length === 0) {
+                error = `בקבוצה עם נושא "${topicLine}" (בלוק ${blockIndex + 1}) לא נמצאו משפטים תקינים החל מהשורה השלישית.`;
+                return;
+            }
+
+            newGroups.push({
+                difficulty: difficulty,
+                topic: topic,
+                sentences: sentences
+            });
+        });
+        return { groups: newGroups, error: error };
+    }
+
+    async function importGroupsToFirebase(parsedGroups) {
+        if (!admin) return;
+        importStatusEl.innerText = `מייבא ${parsedGroups.length} קבוצות...`;
+        try {
+            const updatedGroups = [...groups, ...parsedGroups];
+            await set(groupsRef, updatedGroups);
+            importStatusEl.innerText = `ייבוא ${parsedGroups.length} קבוצות הושלם בהצלחה!`;
+            importText.value = '';
+            importContainer.classList.remove('visible');
+        } catch (e) {
+            console.error("Import error:", e);
+            importStatusEl.innerText = 'שגיאה בייבוא: ' + e.message;
+        }
+    }
+
+    // --- Rendering Logic ---
+    const topicOptionsHTML = TOPICS.map(t => `<option value="${t}">${t}</option>`).join('');
+    const rowHTML = (text, locked, index) => `
+      <div class="sentence-row flex items-center space-x-2 space-x-reverse mb-2">
+        <input type="text" value="${text}" class="sentence-input flex-1 p-2 border rounded bg-white dark:bg-gray-700" placeholder="הזן משפט כאן" />
         <label class="inline-flex items-center space-x-1 space-x-reverse">
-          <input type="checkbox" name="lock${i}" ${locked ? 'checked' : ''} class="h-5 w-5" /><span>🔒</span>
+          <input type="checkbox" ${locked ? 'checked' : ''} class="lock-checkbox h-5 w-5" /><span>🔒</span>
         </label>
-        <button type="button" class="removeSentence text-red-500">✖️</button>
+        <button type="button" class="removeSentence text-red-500 hover:text-red-700 font-bold">✖️</button>
       </div>`;
 
     function view(g) {
       return `
       <div class="border rounded-2xl shadow-lg p-4 bg-gray-50 dark:bg-gray-800 relative">
-        ${admin ? '<button id="editBtn" class="absolute top-2 left-2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200">✏️</button>' : ''}
-        <h2 class="text-2xl font-semibold mb-2">קבוצה ${idx+1}/${groups.length}</h2>
-        <p class="mb-4">רמת קושי: <span class="font-medium">${g.difficulty}</span></p>
+        ${admin ? '<button id="editBtn" class="absolute top-2 left-2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 text-xl">✏️</button>' : ''}
+        <h2 class="text-2xl font-semibold mb-2">קבוצה ${idx+1} מתוך ${groups.length}</h2>
+        <p class="mb-1">רמת קושי: <span class="font-medium">${g.difficulty}</span></p>
+        <p class="mb-4">נושא: <span class="font-medium">${g.topic || 'לא הוגדר'}</span></p>
+        <h3 class="text-lg font-semibold mb-2">משפטים:</h3>
         <ul class="list-decimal list-inside space-y-1">
-          ${g.sentences.map(s => `<li>${s.text}${!s.movable ? ' <span class="text-sm text-green-600">🔒</span>' : ''}</li>`).join('')}
+          ${g.sentences.map(s => `<li>${s.text}${!s.movable ? ' <span class="text-sm text-green-600 dark:text-green-400">🔒</span>' : ''}</li>`).join('')}
         </ul>
       </div>`;
     }
 
     function editForm(g) {
       const rows = g.sentences.map((s, i) => rowHTML(s.text, !s.movable, i)).join('');
+      const currentTopic = g.topic || 'כללי';
       return `
       <div class="border rounded-2xl shadow-lg p-4 bg-gray-50 dark:bg-gray-800">
         <h2 class="text-2xl font-semibold mb-2">עריכת קבוצה ${idx+1}</h2>
-        <label class="block mb-2">רמת קושי: 
-          <input id="diffInput" type="number" value="${g.difficulty}" min="1" max="5" class="p-1 border rounded bg-white dark:bg-gray-700" />
-        </label>
-        <form id="editForm" class="space-y-2">
-          ${rows}
-          <button type="button" id="addSentence" class="mt-2 px-3 py-1 bg-gray-300 dark:bg-gray-700 rounded">➕ הוסף משפט</button>
+        <form id="editForm" class="space-y-3">
+          <div class="flex flex-wrap gap-4 items-center mb-4">
+              <label class="block">רמת קושי:
+                  <input id="diffInput" type="number" value="${g.difficulty}" min="1" max="5" class="p-1 border rounded bg-white dark:bg-gray-700 w-16" />
+              </label>
+              <label class="block">נושא:
+                <select id="topicInput" class="p-1 border rounded bg-white dark:bg-gray-700">
+                  ${TOPICS.map(t => `<option value="${t}" ${t === currentTopic ? 'selected' : ''}>${t}</option>`).join('')}
+                 </select>
+              </label>
+          </div>
+          <div id="sentences-container">
+             <h3 class="text-lg font-semibold mb-2">משפטים:</h3>
+             ${rows}
+          </div>
+          <button type="button" id="addSentence" class="mt-2 px-3 py-1 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 rounded">➕ הוסף משפט</button>
           <div class="flex justify-between mt-4">
-            <button type="button" id="cancelBtn" class="px-4 py-2 bg-red-400 text-white rounded">ביטול</button>
-            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded">שמור</button>
+            <button type="button" id="cancelBtn" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">ביטול</button>
+            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">שמור וסגור</button>
           </div>
         </form>
       </div>`;
     }
 
     function render() {
+      if (groups.length === 0) {
+          container.innerHTML = admin ? '<p class="text-center text-gray-500 dark:text-gray-400">אין קבוצות להצגה. צור קבוצה חדשה או ייבא קבוצות.</p>' : '<p class="text-center text-gray-500 dark:text-gray-400">אין קבוצות להצגה.</p>';
+          return;
+      }
       const g = groups[idx];
-      if (!g) return;
+      if (!g) {
+          console.error(`Error: No group found at index ${idx}`);
+          container.innerHTML = '<p class="text-center text-red-500">שגיאה: לא נמצאה קבוצה באינדקס זה.</p>';
+          return;
+      }
       container.innerHTML = (edit && admin) ? editForm(g) : view(g);
     }
 
-    // ניווט
+    // --- Navigation ---
     function updateNav() {
+      const totalGroups = groups.length;
       prevBtn.disabled = idx <= 0;
-      nextBtn.disabled = idx >= groups.length - 1;
-      groupInp.value = idx + 1;
-      groupInp.max = groups.length;
+      nextBtn.disabled = idx >= totalGroups - 1;
+      groupInp.value = totalGroups > 0 ? idx + 1 : 0;
+      groupInp.max = totalGroups > 0 ? totalGroups : 1;
+      groupInp.min = totalGroups > 0 ? 1 : 0;
+      groupCountEl.innerText = `/ ${totalGroups}`;
+      delBtn.disabled = totalGroups === 0 || !admin;
     }
-    prevBtn.onclick = () => { if (idx > 0) { idx--; updateNav(); render(); } };
-    nextBtn.onclick = () => { if (idx < groups.length - 1) { idx++; updateNav(); render(); } };
-    groupInp.onchange = e => { const v = +e.target.value - 1; if (v >= 0 && v < groups.length) { idx = v; updateNav(); render(); } };
 
-    // אירועי עריכה
+    prevBtn.onclick = () => { if (idx > 0) { idx--; edit=false; updateNav(); render(); } };
+    nextBtn.onclick = () => { if (idx < groups.length - 1) { idx++; edit=false; updateNav(); render(); } };
+    groupInp.onchange = e => {
+        const v = +e.target.value - 1;
+        if (v >= 0 && v < groups.length) { idx = v; edit=false; updateNav(); render(); }
+        else { e.target.value = idx + 1; }
+    };
+
+    // --- Edit Form Event Listeners ---
     container.addEventListener('click', e => {
-      if (e.target.id === 'editBtn') { edit = true; render(); }
-      if (e.target.id === 'cancelBtn') { edit = false; render(); }
-      if (e.target.id === 'addSentence') {
-        const form = document.getElementById('editForm');
-        const count = form.querySelectorAll('.sentence-row').length;
-        form.insertAdjacentHTML('afterbegin', rowHTML('', false, count));
+      // Edit button
+      if (e.target.id === 'editBtn') {
+          if (!admin) return;
+          edit = true;
+          render();
+          return;
       }
-      if (e.target.classList.contains('removeSentence')) e.target.closest('.sentence-row').remove();
+      // Cancel button
+      if (e.target.id === 'cancelBtn') {
+          edit = false;
+          render();
+          return;
+      }
+      // Add Sentence button
+      if (e.target.id === 'addSentence') {
+          const sentencesContainer = document.getElementById('sentences-container');
+          if (sentencesContainer) {
+              const newRowDiv = document.createElement('div');
+              newRowDiv.innerHTML = rowHTML('', false, 0);
+              const newRowElement = newRowDiv.firstElementChild;
+              if (newRowElement) {
+                  sentencesContainer.appendChild(newRowElement);
+              }
+          }
+          return;
+      }
+      // Remove Sentence button
+      if (e.target.classList.contains('removeSentence')) {
+          e.target.closest('.sentence-row')?.remove();
+          return;
+      }
     });
 
     container.addEventListener('submit', e => {
       e.preventDefault();
+      if (!admin) return;
       const form = e.target;
-      const diff = parseInt(document.getElementById('diffInput').value) || 1;
+      if (form.id !== 'editForm') return;
+
+      statusEl.innerText = 'שומר...';
+
+      const diffInput = document.getElementById('diffInput');
+      const topicInput = document.getElementById('topicInput');
+      const difficulty = diffInput ? (parseInt(diffInput.value) || 1) : 1;
+      const topic = topicInput ? topicInput.value : 'כללי';
+
       const rows = [...form.querySelectorAll('.sentence-row')];
-      const sentences = rows.map((row, i) => ({
-        text: row.querySelector(`input[name="text${i}"]`).value,
-        movable: !row.querySelector(`input[name="lock${i}"]`).checked
-      }));
-      update(ref(db, `collections/groups/${idx}`), { difficulty: diff, sentences })
-        .then(() => { statusEl.innerText = 'נשמר'; edit = false; render(); })
-        .catch(e => statusEl.innerText = 'שגיאה: ' + e.message);
+      let errorOccurred = false;
+      const sentences = rows.map((row) => {
+        const textInput = row.querySelector('.sentence-input');
+        const lockCheckbox = row.querySelector('.lock-checkbox');
+
+        if (!textInput || !lockCheckbox) {
+            console.error("Malformed sentence row found:", row);
+             statusEl.innerText = 'שגיאה: מבנה שורה לא תקין. לא ניתן לשמור.';
+            errorOccurred = true;
+            return null;
+        }
+        const textValue = textInput.value.trim();
+        if (!textValue) {
+             console.warn("Empty sentence found, skipping row:", row);
+             return null;
+         }
+        return {
+          text: textValue,
+          movable: !lockCheckbox.checked
+        };
+      }).filter(s => s !== null);
+
+      if (errorOccurred) return;
+
+      if (sentences.length === 0) {
+          statusEl.innerText = 'שגיאה: יש להזין לפחות משפט אחד.';
+          return;
+      }
+
+      const updatedGroupData = { difficulty, topic, sentences };
+
+      // Update the specific group in the array
+      update(ref(db, `collections/groups/${idx}`), updatedGroupData)
+        .then(() => {
+            statusEl.innerText = 'נשמר בהצלחה';
+            edit = false;
+            // *** התיקון כאן: קריאה מפורשת ל-render() ול-updateNav() ***
+            render();
+            updateNav();
+            // ה-listener של Firebase עדיין ירוץ ויטען את הנתונים העדכניים,
+            // אבל התצוגה מתעדכנת מיידית למצב קריאה.
+        })
+        .catch(e => {
+            console.error("Save error:", e);
+            statusEl.innerText = 'שגיאה בשמירה: ' + e.message;
+        });
     });
   </script>
 
