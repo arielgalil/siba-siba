@@ -473,36 +473,25 @@
       </div>`;
 
       function view(g) {
-        // פונקציה זו נקראת רק כשאנחנו לא במצב עריכה
-        const currentIdx = idx; // שמירת האינדקס הנוכחי
-        const topicDisplay = g.topic || "כללי"; // הצג "כללי" אם אין נושא
-        const difficultyDisplay = g.difficulty || "?"; // הצג "?" אם אין רמת קושי
-        const title = `${topicDisplay} - רמה ${difficultyDisplay}`;
+    // פונקציה זו נקראת רק כשאנחנו לא במצב עריכה
+    const currentIdx = idx; // שמירת האינדקס הנוכחי
+    const topicDisplay = g.topic || 'כללי'; // הצג "כללי" אם אין נושא
+    const difficultyDisplay = g.difficulty || '?'; // הצג "?" אם אין רמת קושי
+    const title = `${topicDisplay} - רמה ${difficultyDisplay}`;
 
-        return `
+    return `
     <div class="border rounded-2xl shadow-lg p-4 bg-gray-50 dark:bg-gray-800 relative">
-      ${
-        admin
-          ? `<button data-idx="${currentIdx}" id="editBtn" class="absolute top-2 left-2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 text-xl">✏️</button>`
-          : ""
-      }
+      ${admin ? `<button data-idx="${currentIdx}" id="editBtn" class="absolute top-2 left-2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 text-xl">✏️</button>` : ''}
       <h2 class="text-2xl font-semibold mb-4">${title}</h2>
       <h3 class="text-lg font-semibold mb-2">משפטים:</h3>
-      <ul class="list-decimal list-inside space-y-1">
-        ${g.sentences
-          .map(
-            (s) =>
-              `<li>${s.text}${
-                !s.movable
-                  ? ' <span class="text-sm text-green-600 dark:text-green-400">🔒</span>'
-                  : ""
-              }</li>`
-          )
-          .join("")}
-      </ul>
+      <ol class="list-decimal list-outside mr-5 space-y-1"> ${g.sentences.map(s =>
+          `<li>
+             ${s.text}${!s.movable ? ' <span class="text-sm text-green-600 dark:text-green-400">🔒</span>' : ''}
+           </li>`
+        ).join('')}
+      </ol>
     </div>`;
-      }
-
+  }
       function editForm(g) {
         // g יכול להיות null אם isAddingNewGroup=true
         const dataToEdit = isAddingNewGroup ? newGroupDataBuffer : g;
