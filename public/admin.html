@@ -475,7 +475,6 @@
       function view(g) {
         // פונקציה זו נקראת רק כשאנחנו לא במצב עריכה
         const currentIdx = idx; // שמירת האינדקס הנוכחי
-        // *** שינוי כאן: שינוי תוכן הכותרת h2 ***
         const topicDisplay = g.topic || "כללי"; // הצג "כללי" אם אין נושא
         const difficultyDisplay = g.difficulty || "?"; // הצג "?" אם אין רמת קושי
         const title = `${topicDisplay} - רמה ${difficultyDisplay}`;
@@ -487,15 +486,7 @@
           ? `<button data-idx="${currentIdx}" id="editBtn" class="absolute top-2 left-2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 text-xl">✏️</button>`
           : ""
       }
-      {/* *** הכותרת החדשה מוצגת כאן *** */}
       <h2 class="text-2xl font-semibold mb-4">${title}</h2>
-      {/* הסרנו את השורות שהציגו את רמת הקושי והנושא בנפרד, כי הן עכשיו בכותרת */}
-      {/* <p class="mb-1">רמת קושי: <span class="font-medium">${
-        g.difficulty
-      }</span></p> */}
-      {/* <p class="mb-4">נושא: <span class="font-medium">${
-        g.topic || "לא הוגדר"
-      }</span></p> */}
       <h3 class="text-lg font-semibold mb-2">משפטים:</h3>
       <ul class="list-decimal list-inside space-y-1">
         ${g.sentences
