@@ -403,7 +403,7 @@ function App() {
   const gameInstructions = !isLoading && currentGroup ? createElement(
     'div', { className: 'instructions text-center w-full max-w-md mb-3 px-2' },
     createElement('h3', { className: 'text-lg font-semibold text-gray-800 dark:text-gray-200' }, `משפטים בנושא: ${currentGroup.topic || 'כללי'}`),
-    createElement('p', { className: 'text-sm text-gray-600 dark:text-gray-400' }, 'סדר/י את המשפטים הבאים לפי שרשרת הסיבה והתוצאה.')
+    createElement('p', { className: 'text-sm text-gray-600 dark:text-gray-400' }, 'סדר/י את המשפטים הבאים לפי שרשרת של סיבות ותוצאה')
   ) : null;
 
   const buttonText = checkButtonState === "ready" ? "מוכן לאתגר הבא?" : checkButtonState === "checking" ? "בודק..." : "בדיקה";

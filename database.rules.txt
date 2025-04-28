@@ -1,0 +1,90 @@
+{
+  "rules": {
+    "admins": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).val() === true",
+      ".write": false
+    },
+    "questions": {
+      ".read": "auth != null",
+      ".write": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).val() === true",
+      ".indexOn": ["createdAt", "topic"],
+      "$questionId": {
+        "question": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length < 1000" },
+        "answers": {
+          ".validate": "newData.hasChild('0') && newData.hasChild('1') && newData.child('0').isString() && newData.child('0').val().length > 0 && newData.child('1').isString() && newData.child('1').val().length > 0"
+        },
+        "correct": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "topic": { ".validate": "newData.isString() && (newData.val() == 'human-body' || newData.val() == 'cell' || newData.val() == 'ecology')" },
+        "tags": { ".validate": "newData.val() == null || newData.hasChildren()" },
+        "createdAt": {
+          ".write": "!data.exists()",
+          ".validate": "newData.isNumber() && newData.val() <= now"
+        },
+        "updatedAt": {
+          ".validate": "newData.isNumber() && newData.val() <= now"
+        },
+        "$other": { ".validate": false }
+      }
+    },
+    "questionCounts": {
+      ".read": "auth != null",
+      ".write": false
+    },
+    "players": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).val() === true",
+      ".indexOn": ["createdAt", "nickname"],
+      "$playerId": {
+        ".read": "auth != null && (auth.uid === $playerId || (root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).val() === true))",
+        ".write": "auth != null && (auth.uid === $playerId || (root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).val() === true))",
+        "createdAt": {
+          ".write": "!data.exists()",
+          ".validate": "newData.isNumber() && newData.val() <= now"
+        },
+        "nickname": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 25" },
+        "darkMode": { ".validate": "newData.isBoolean()" },
+        "lastTopic": { ".validate": "newData.isString()" },
+        "cumulativeScore": { ".validate": "newData.isNumber()" },
+        "correctCount": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "wrongCount": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "availableSkips": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "availableFiftyFifty": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "topicStats": {
+          "$topic": {
+            ".validate": "newData.hasChildren(['correctCount', 'wrongCount']) && newData.child('correctCount').isNumber() && newData.child('correctCount').val() >= 0 && newData.child('wrongCount').isNumber() && newData.child('wrongCount').val() >= 0"
+          }
+        },
+        "tagStats": {
+          "$tag": {
+            ".validate": "newData.hasChildren(['correctCount', 'wrongCount']) && newData.child('correctCount').isNumber() && newData.child('correctCount').val() >= 0 && newData.child('wrongCount').isNumber() && newData.child('wrongCount').val() >= 0"
+          }
+        },
+        "adminDarkMode": { ".validate": "newData.isBoolean()" },
+        "$other": { ".validate": false }
+      }
+    },
+    "gameResults": {
+      ".read": "auth != null",
+      "$date": {
+        "$playerId": {
+          ".read": "auth != null",
+          ".write": "auth != null && auth.uid === $playerId",
+          ".validate": "newData.hasChildren(['correctCount', 'totalQuestions', 'score', 'timestamp', 'topic', 'nickname', 'playerId']) && newData.child('playerId').val() === $playerId && newData.child('score').isNumber() && newData.child('correctCount').isNumber() && newData.child('correctCount').val() >= 0 && newData.child('totalQuestions').isNumber() && newData.child('totalQuestions').val() > 0 && newData.child('totalQuestions').val() >= newData.child('correctCount').val() && newData.child('timestamp').isString() && newData.child('topic').isString() && newData.child('nickname').isString() && newData.child('nickname').val().length > 0 && newData.child('nickname').val().length <= 25 && (newData.child('topic').val() === 'test_mode' || (newData.hasChild('longestStreak') && newData.child('longestStreak').isNumber() && newData.child('longestStreak').val() >= 0 && newData.hasChild('tools') && newData.child('tools').hasChildren(['fiftyFifty', 'addTime', 'skip']) && newData.child('tools/fiftyFifty').isNumber() && newData.child('tools/fiftyFifty').val() >= 0 && newData.child('tools/addTime').isBoolean() && newData.child('tools/skip').isNumber() && newData.child('tools/skip').val() >= 0))"
+        }
+      }
+    },
+    "leaderboard": {
+      ".indexOn": ["cumulativeScore"],
+      ".read": "auth != null",
+      "$playerId": {
+        ".write": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).val() === true",
+        ".validate": "newData.hasChildren(['nickname', 'cumulativeScore']) && newData.child('nickname').isString() && newData.child('nickname').val().length > 0 && newData.child('nickname').val().length <= 25 && newData.child('cumulativeScore').isNumber()"
+      }
+    },
+    "collections": {
+      "groups": {
+        ".read": "auth != null",
+        ".write": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).val() === true"
+      }
+    }
+  }
+}
