@@ -358,7 +358,7 @@ function App() {
   // Modified renderSentence for Emojis
   function renderSentence(sentence, index) {
     const classes = [
-      'text-box', 'my-2', 'w-full', 'max-w-md', 'rounded-2xl', 'relative', 'flex', 'items-center', 'p-3', 'transition-colors', 'duration-300', 'shadow'
+      'text-box', 'my-2', 'w-full', 'max-w-md', 'rounded-2xl', 'relative', 'flex', 'items-center', 'p-3', 'transition-colors', 'duration-300', 'shadow', 'no-select'
     ];
     if (checkedResults !== undefined && checkedResults[index] !== null) { classes.push(checkedResults[index] ? 'correct' : 'wrong'); }
     if (sentence && !sentence.movable) { classes.push('fixed'); }

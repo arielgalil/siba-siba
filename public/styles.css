@@ -150,3 +150,10 @@ body *:not(.title) {
   align-items: center;
   gap: 0.5rem; /* רווח קבוע בין האייקון לטקסט */
 }
+
+.no-select {
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE/Edge */
+  user-select: none; /* Standard */
+}
