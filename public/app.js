@@ -268,7 +268,7 @@ function App() {
             },
             onStart: function(e) {
               // Kept short vibration on drag start
-              if (navigator.vibrate) navigator.vibrate(30);
+              if (navigator.vibrate) navigator.vibrate(10);
             },
             onUpdate: function (e) {
               if (checkButtonState === 'checking') return;
@@ -286,7 +286,7 @@ function App() {
                     return prev;
                  }
                  // Kept short vibration on drop
-                 if (navigator.vibrate) navigator.vibrate(50);
+                 if (navigator.vibrate) navigator.vibrate(15);
                  return { ...prev, sentences: newSentences };
               });
             }
@@ -446,7 +446,7 @@ function App() {
       });
        // --- Adjusted Vibration ---
        if (navigator.vibrate) {
-            navigator.vibrate(isCorrect ? 15 : 30); // Shorter vibration
+            navigator.vibrate(isCorrect ? 5 : 10); // Shorter vibration
        }
        // --- End Adjusted Vibration ---
       setTimeout(() => { checkSentenceAtIndex(index + 1); }, checkDelay);
@@ -464,7 +464,7 @@ function App() {
           setScore(s => s + earnedScore);
           if (timerInterval.current) { clearInterval(timerInterval.current); timerInterval.current = null; }
           // --- Adjusted Vibration ---
-          if (navigator.vibrate) navigator.vibrate(50); // Short success vibration
+          if (navigator.vibrate) navigator.vibrate(15); // Short success vibration
           // --- End Adjusted Vibration ---
         } else {
           setMessage('נסה שוב!');
