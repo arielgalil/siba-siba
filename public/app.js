@@ -199,7 +199,7 @@ function App() {
 
   // --- Main Return ---
   return createElement(
-    'div', { className: 'container flex flex-col items-center justify-start pt-2 pb-6 min-h-screen gap-3 px-4 sm:px-8 relative' }, // Container חיצוני
+    'div', { className: 'container flex flex-col items-center justify-start pt-2 pb-25 min-h-screen gap-3 px-4 sm:px-8 relative' }, // Container חיצוני
 
     createElement(GameHeader, null), // הדר (רק שורה עליונה)
 
