@@ -1,36 +1,56 @@
-/* הגדרות בסיסיות עבור מצב בהיר */
-body, html {
+/* קובץ: public/styles.css - גרסה מעודכנת */
+
+/* הגדרות בסיסיות ל-html ול-body כדי לאפשר flex בגובה מלא */
+html, body {
+    height: 100%; /* חשוב לגובה מלא */
     margin: 0;
     padding: 0;
-    height: 100%;
-    /* השתמש במשתני Tailwind או צבעים ישירים התואמים ל-Tailwind אם תרצה */
-    /* background-color: #f8f9fa; */ /* מנוהל ע"י Tailwind ב-body tag */
-    /* color: #000; */ /* מנוהל ע"י Tailwind ב-body tag */
+    /* הגדרות נוספות כמו גופן הוחלו ב-index.html או דרך Tailwind */
   }
   
+  body {
+    display: flex; /* הפוך את ה-body ל-flex container */
+    flex-direction: column; /* סידור אנכי (הדר, תוכן, פוטר) */
+    /* הגדרות רקע וצבע טקסט מנוהלות ע"י Tailwind בקלאסים של ה-body */
+    /* background-color: #f8f9fa; */
+    /* color: #000; */
+  }
+  
+  /* הגדרות ל-div#root כדי שיתפוס את הגובה הפנוי */
+  #root {
+    display: flex; /* אפשר לו להשתמש ב-flex פנימי */
+    flex-direction: column; /* המשך סידור אנכי בתוך ה-root */
+    flex-grow: 1; /* גורם לו למלא את הגובה הפנוי ב-body */
+    /* אין צורך ב-min-height כאן */
+  }
+  
+  
+  /* ה-container הפנימי ב-App.js כבר לא צריך min-height */
+  /* אפשר להשאיר הגדרות אחרות אם יש, או להסתמך על Tailwind */
   .container {
-    min-height: 100vh;
-    /* padding: 20px; */ /* מנוהל ע"י Tailwind p-6 ב-App */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem; /* שונה ל-1rem שיתאים ל-gap-3/4 של Tailwind */
-    background-color: transparent; /* נותן לרקע ה-body לשלוט */
+    /* padding: 20px; */ /* מנוהל ע"י Tailwind ב-App */
+    display: flex; /* כבר מוגדר ב-App.js עם Tailwind */
+    flex-direction: column; /* כבר מוגדר ב-App.js עם Tailwind */
+    align-items: center; /* כבר מוגדר ב-App.js עם Tailwind */
+    gap: 1rem; /* מנוהל ע"י Tailwind ב-App */
+    /* background-color: transparent; */ /* נותן לרקע ה-body לשלוט */
+    width: 100%; /* ודא שהוא תופס רוחב מלא בתוך #root */
+    /* flex-grow: 1; */ /* הוסר מכאן, כי #root מטפל בזה */
   }
   
-  /* עיצוב תיבות המשחק (Text Box) - אפשר לשקול לעבור ל-Tailwind אם רוצים אחידות מלאה */
+  /* עיצוב תיבות המשחק (Text Box) - נשאר כפי שהיה, מנוהל בעיקר ע"י Tailwind */
   .text-box {
     padding: 0.75rem 1.5rem 0.75rem 1rem; /* P-3 בערך, עם התאמה ל-icon */
     border: 1px solid #cbd5e1; /* border-gray-300 */
     border-radius: 1rem; /* rounded-2xl */
     background-color: #ffffff; /* bg-white */
     color: #1f2937; /* text-gray-800 */
-    font-size: 1rem; /* text-base */
+    font-size: 1rem; /* text-base - שים לב, ב-App.js הגדרנו text-base, אז זה צריך להתאים */
     cursor: grab;
     position: relative;
     transition: background-color 0.3s, color 0.3s, border-color 0.3s; /* הוספת border-color */
     /* מחלקות אלו צריכות להיות על האלמנט עצמו ב-React */
-    /* display: flex; items-center; w-full; max-w-md; my-2; shadow; */
+    /* display: flex; items-center; w-full; max-w-md; my-1; shadow-sm; */
   }
   
   .text-box.correct {
@@ -44,46 +64,34 @@ body, html {
     background-color: #fee2e2; /* red-100 */
     border-color: #fca5a5; /* red-300 */
     color: #991b1b; /* red-800 */
+    /* cursor נשאר grab עד שזה ננעל/מוגש? או לשנות לפי הצורך */
   }
   
   .text-box.fixed {
     cursor: default;
-    /* אפשר להוסיף עיצוב קל להדגשה, למשל border-style: dashed; */
-    /* border-style: dashed; */
-    /* border-color: #9ca3af; */ /* gray-400 */
+    /* border-style: dashed; */ /* אפשר להוסיף */
+    /* border-color: #9ca3af; */ /* gray-400 */ /* אפשר להוסיף */
   }
   
   /* עיצוב האייקונים בתוך תיבות הטקסט (אם לא הוגדר ב-Tailwind) */
   .icon {
-    font-size: 1.25rem; /* text-xl */ /* ניתן לשנות גדלים ב-Tailwind לפי הצורך */
+    font-size: 1.25rem; /* text-xl */
     color: #6b7280; /* text-gray-500 */
   }
   
-  /* עיצוב כפתור הבדיקה/הבא (אם לא עבר לגמרי ל-Tailwind ב-React) */
+  /* עיצוב כפתורי הפעולה (check-button) - נראה שמנוהל לגמרי ע"י Tailwind ב-App.js */
   .check-button {
     /* מחלקות Tailwind מגדירות את רוב העיצוב עכשיו ב-app.js */
-    /* לדוגמה: bg-green-500, text-white, py-2, px-6, rounded-full, font-semibold */
     cursor: pointer;
     transition: background-color 0.3s, opacity 0.3s;
   }
+  /* הסרנו את הכללים הספציפיים כי getButtonClasses מטפל בזה */
+  /* .check-button.ready { ... } */
+  /* .check-button:disabled { ... } */
   
-  .check-button.ready {
-    /* מחלקת ready מוחלפת במחלקות Tailwind ישירות ב-app.js */
-    /* לדוגמה: bg-yellow-400 text-black */
-    /* background-color: #ffc107; */
-    /* color: #000; */
-  }
-  
-  .check-button:disabled {
-     /* מחלקות Tailwind מנהלות מצב disabled ב-app.js */
-    /* לדוגמה: opacity-50 cursor-not-allowed */
-    /* background-color: #6c757d; */
-    /* cursor: not-allowed; */
-  }
-  
-  /* אזור הודעות – גובה קבוע (כפי שהיה) */
+  /* אזור הודעות (Toast) - מנוהל ע"י App.js עם Tailwind */
   .message {
-    min-height: 1.5em; /* התאמה לגובה שורה */
+    min-height: 1.5em;
     font-size: 1rem; /* text-base */
     text-align: center;
     /* צבעים מנוהלים ע"י Tailwind dark:text-gray-300 */
@@ -92,24 +100,24 @@ body, html {
   /* אנימציית פעימה (כפי שהיה, שימושי לניקוד) */
   @keyframes pulseAnim {
     0% { transform: scale(1); }
-    50% { transform: scale(1.1); } /* אפשר להקטין מעט את הפעימה */
+    50% { transform: scale(1.1); }
     100% { transform: scale(1); }
   }
   .pulse {
-    animation: pulseAnim 0.8s ease-in-out; /* אפשר לשנות משך ו-timing */
+    animation: pulseAnim 0.8s ease-in-out;
   }
   
-  /* הגדרות מצב כהה (נשען על מחלקות dark: של Tailwind ב-HTML/React) */
-  /* רוב ההגדרות הספציפיות למצב כהה יכולות להיות מנוהלות ישירות */
-  /* על האלמנטים עם קידומת dark: ב-Tailwind. */
-  /* לדוגמה: <body class="bg-white dark:bg-gray-900 ..."> */
+  /* הגדרות מצב כהה - נשען על Tailwind ועל הקלאס ב-body */
+  /* body.dark-mode { ... } או מחלקות dark: של Tailwind */
   
-  /* מבנה פנימי של תיבת טקסט (כפי שהיה) */
-  .text-box > div { /* זה כנראה מיותר אם ה-div הפנימי הוסר והמחלקות flex וכו' על ה-.text-box עצמו */
+  /* מבנה פנימי של תיבת טקסט - כנראה מיותר */
+  /*
+  .text-box > div {
     display: flex;
     align-items: center;
-    gap: 0.5rem; /* רווח קבוע בין האייקון לטקסט */
+    gap: 0.5rem;
   }
+  */
   
   /* למניעת בחירת טקסט בגרירה (אם רוצים להשאיר בנוסף ל-user-select: none) */
   .no-select {

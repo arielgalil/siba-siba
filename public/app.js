@@ -1,4 +1,4 @@
-const { createElement, useState, useEffect, useRef } = React; // <-- ודא ששורה זו קיימת וזהה בתחילת הקובץ
+const { createElement, useState, useEffect, useRef } = React; // <-- ודא ששורה זו קיימת ותקינה!
 
 // --- Firebase Setup ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
@@ -59,15 +59,16 @@ function App() {
       let fixedSpecificClasses = '';
       if (sentence && !sentence.movable) { fixedSpecificClasses = 'fixed border-dashed border-gray-400 dark:border-gray-500'; cursorClass = 'cursor-default'; }
       const iconText = sentence.movable ? "↕️" : "🔒";
+      // *** שימוש ב-createElement שהוגדר למעלה ***
       return createElement( 'div', { key: sentence.id, 'data-id': sentence.id, className: [...baseClasses, stateClasses, cursorClass, fixedSpecificClasses, (!sentence.movable ? '' : 'hover:shadow-md'), 'sentence-box'].join(' ') },
           createElement('span', { className: 'icon ml-2 text-xl flex-shrink-0 cursor-default text-gray-500 dark:text-gray-400' }, iconText),
-          createElement('span', { className: 'sentence-text flex-grow break-words select-text text-base' }, sentence.text) // פונט מוגדל
+          createElement('span', { className: 'sentence-text flex-grow break-words select-text text-base' }, sentence.text)
       );
   }
 
-  // --- Action Button Logic ---
+  // Action Button Logic
   const getButtonClasses = () => {
-      let base = 'mt-4 py-1.5 px-5 text-base rounded-full font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800'; // גודל מוקטן
+      let base = 'mt-4 py-1.5 px-5 text-base rounded-full font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800';
       let stateClasses = '';
       if (checkButtonState === "session_finished") { stateClasses = 'bg-blue-500 text-white hover:bg-blue-600 focus:ring-blue-500'; }
       else if (checkButtonState === "ready") { stateClasses = 'bg-yellow-400 text-black hover:bg-yellow-500 focus:ring-yellow-400'; }
@@ -77,7 +78,7 @@ function App() {
       return `${base} ${stateClasses}`;
   };
 
-  // *** משתנים עבור כפתור הפעולה ***
+  // משתנים עבור כפתור הפעולה
   let buttonText;
   let buttonOnClick;
   let buttonDisabled = isLoading;
@@ -94,16 +95,12 @@ function App() {
       buttonText = "בודק...";
       buttonOnClick = () => {};
       buttonDisabled = true;
-  } else { // Default "check" or "try again" state
-      if (lastCheckIncorrect) {
-          buttonText = "נסה שוב!";
-      } else {
-          buttonText = "בדיקה";
-      }
+  } else {
+      if (lastCheckIncorrect) { buttonText = "נסה שוב!"; }
+      else { buttonText = "בדיקה"; }
       buttonOnClick = checkOrder;
       buttonDisabled = isLoading || (!currentGroup && gameState === 'playing');
   }
-  // *** סוף הגדרת המשתנים ***
 
   // --- JSX-like Rendering Elements ---
   const ToastComponent = toast.show ? createElement( 'div', { className: `toast fixed top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-4 rounded-lg shadow-lg text-white text-base z-50 transition-all duration-300 ease-out ${ toast.type === 'success' ? 'bg-green-500' : toast.type === 'info' ? 'bg-blue-500' : 'bg-red-500' } ${toast.show ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}` }, toast.message) : null;
@@ -111,6 +108,7 @@ function App() {
 
   // GameHeader (רק שורה עליונה)
   const GameHeader = () => {
+      // *** שימוש ב-createElement שהוגדר למעלה ***
       const topRow = createElement('div', {className: 'flex justify-between items-center w-full max-w-4xl mx-auto px-4 pt-2'},
           createElement('div', {className: 'w-20 min-w-[0px]'}),
           createElement('h1', { className: 'title text-xl sm:text-2xl font-bold text-center text-gray-900 dark:text-gray-100 flex-1 px-2' }, 'שרשרת סיבות ⛓️‍💥‏‏'),
@@ -122,22 +120,23 @@ function App() {
       return topRow;
   };
 
-  // Footer עם קישורים מעודכנים
+  // Footer עם קישורים מעודכנים ו-Workaround
   function Footer() {
     const linkClass = 'hover:text-gray-700 dark:hover:text-gray-300 underline mx-1';
     const separatorClass = 'opacity-50 mx-1';
 
-    return createElement('footer', { className: 'w-full text-center text-xs text-gray-500 dark:text-gray-400 mt-auto pt-4 pb-2' },
+    // *** שימוש ב-React.createElement ישירות (Workaround) ***
+    return React.createElement('footer', { className: 'w-full text-center text-xs text-gray-500 dark:text-gray-400 pt-4 pb-2' },
       'פותח על ידי אריאל מ',
-      createElement('a', { href: 'https://galilbio.wordpress.com', target: '_blank', rel: 'noopener noreferrer', className: linkClass }, 'הביולוגים של גליל'),
+      React.createElement('a', { href: 'https://galilbio.wordpress.com', target: '_blank', rel: 'noopener noreferrer', className: linkClass }, 'הביולוגים של גליל'),
       ' בעזרת ',
-      createElement('a', { href: 'https://grok.com', target: '_blank', rel: 'noopener noreferrer', className: linkClass }, 'Grok'),
+      React.createElement('a', { href: 'https://grok.com', target: '_blank', rel: 'noopener noreferrer', className: linkClass }, 'Grok'),
       ', ',
-      createElement('a', { href: 'https://chatgpt.com/', target: '_blank', rel: 'noopener noreferrer', className: linkClass }, 'Chat GPT'),
+      React.createElement('a', { href: 'https://chatgpt.com/', target: '_blank', rel: 'noopener noreferrer', className: linkClass }, 'Chat GPT'),
       ' וגם ',
-      createElement('a', { href: 'https://gemini.google.com/', target: '_blank', rel: 'noopener noreferrer', className: linkClass }, 'Gemini'),
-      createElement('span', { className: separatorClass }, '|'),
-      createElement('a', { href: './admin.html', target: '_blank', rel: 'noopener noreferrer', className: linkClass }, 'ניהול')
+      React.createElement('a', { href: 'https://gemini.google.com/', target: '_blank', rel: 'noopener noreferrer', className: linkClass }, 'Gemini'),
+      React.createElement('span', { className: separatorClass }, '|'),
+      React.createElement('a', { href: './admin.html', target: '_blank', rel: 'noopener noreferrer', className: linkClass }, 'ניהול')
     );
   }
 
@@ -157,6 +156,7 @@ function App() {
       const handleSelectAllTopics = () => { setSelectedTopicsInternal(prevTopics => { if (prevTopics.size === actualAvailableTopics.length) { return new Set(); } else { return new Set(actualAvailableTopics); } }); };
       const handleStartClick = () => { if (selectedTopicsInternal.size === 0) { alert('יש לבחור לפחות נושא אחד'); return; } onStartGame(difficultyOptions[difficultyKey].range, selectedTopicsInternal, availableCount); };
 
+      // *** שימוש ב-createElement שהוגדר למעלה ***
       const SelectionButton = ({ text, isSelected, type, onClick, isAllOption = false }) => {
           const baseClasses = "flex items-center justify-center space-x-2 space-x-reverse px-3 py-2 border rounded-xl cursor-pointer transition-colors duration-200 w-full text-center text-sm sm:text-base";
           const isAllSelectedStyle = isAllOption && isSelected;
@@ -168,25 +168,23 @@ function App() {
           return createElement( 'button', { type: 'button', className: `${baseClasses} ${buttonStateClasses}`, onClick: onClick }, createElement('span', { className: `${radioCheckboxBase} ${radioCheckboxSelectedClasses}` }, innerMark), createElement('span', { className: 'flex-grow' }, text) );
       };
 
+      // *** שימוש ב-createElement שהוגדר למעלה ***
       return createElement( 'div', { className: 'w-full' },
-          // גודל כותרת מאוחד
           createElement('h2', { className: 'text-xl sm:text-2xl font-semibold text-center mb-4 text-gray-900 dark:text-gray-100' }, 'הגדרות משחק'),
           createElement('div', { className: 'mb-6' },
-              // גודל תווית מוקטן
               createElement('h3', { className: 'text-base font-medium mb-2 text-gray-800 dark:text-gray-200' }, 'בחר רמת קושי:'),
               createElement('div', { className: 'grid grid-cols-2 sm:grid-cols-4 gap-3' },
                   Object.entries(difficultyOptions).map(([key, { label }]) => createElement(SelectionButton, { key: key, text: label, isSelected: difficultyKey === key, type: 'radio', onClick: () => handleDifficultyChange(key), isAllOption: key === 'all' }))
               )
           ),
           createElement('div', { className: 'mb-6' },
-               // גודל תווית מוקטן
               createElement('h3', { className: 'text-base font-medium mb-2 text-gray-800 dark:text-gray-200' }, 'בחר נושאים (אחד או יותר):'),
               createElement('div', { className: 'grid grid-cols-2 sm:grid-cols-3 gap-3' },
                    createElement(SelectionButton, { key: 'all-topics', text: 'הכל', isSelected: selectedTopicsInternal.size === actualAvailableTopics.length && actualAvailableTopics.length > 0, type: 'checkbox', onClick: handleSelectAllTopics, isAllOption: true }),
                    actualAvailableTopics.map(topic => createElement(SelectionButton, { key: topic, text: topic, isSelected: selectedTopicsInternal.has(topic), type: 'checkbox', onClick: () => handleTopicToggle(topic), isAllOption: false }))
               )
           ),
-          createElement('button', { // כפתור התחלה - מוקטן
+          createElement('button', {
               className: `w-full py-2 px-5 text-base rounded-full font-semibold transition-opacity duration-300 flex items-center justify-center ${ selectedTopicsInternal.size === 0 || availableCount === 0 ? 'bg-gray-400 text-gray-700 cursor-not-allowed dark:bg-gray-600 dark:text-gray-400' : 'bg-green-500 text-white hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700' } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800`,
               onClick: handleStartClick,
               disabled: selectedTopicsInternal.size === 0 || availableCount === 0
@@ -198,31 +196,27 @@ function App() {
   } // סוף GameSetup
 
   // --- Main Return ---
+  // *** שימוש ב-createElement שהוגדר למעלה ***
   return createElement(
-    'div', { className: 'container flex flex-col items-center justify-start pt-2 pb-25 min-h-screen gap-3 px-4 sm:px-8 relative' }, // Container חיצוני
+    'div', { className: 'container flex flex-col items-center justify-start pt-2 pb-6 gap-3 px-4 sm:px-8 relative flex-grow' },
 
-    createElement(GameHeader, null), // הדר (רק שורה עליונה)
+    createElement(GameHeader, null),
 
-    // Container מרכזי עם רקע, עוטף את התוכן המשתנה
-    createElement('div', { className: 'w-full max-w-lg mx-auto my-4 p-4 sm:p-6 bg-white dark:bg-gray-800 shadow-md rounded-lg flex flex-col items-center flex-grow' },
+    createElement('div', { className: 'w-full max-w-lg mx-auto my-4 p-4 sm:p-6 bg-white dark:bg-gray-800 shadow-md rounded-lg flex flex-col items-center' },
 
         gameState === 'setup'
-        ? // תוכן מסך ההגדרות
+        ?
           createElement(GameSetup, {
               initialDifficultyRange: selectedDifficultyRange,
               initialTopics: selectedTopics,
               onStartGame: handleStartGame,
               allGroups: groups
           })
-        : // תוכן מסך המשחק (בתוך הקופסה)
+        :
           createElement(React.Fragment, null,
-              // כותרת משנה (גודל מאוחד)
-              createElement('h2', {
-                  className: 'text-xl sm:text-2xl font-semibold text-center mb-2 text-gray-800 dark:text-gray-200'
-                 },
+              createElement('h2', { className: 'text-xl sm:text-2xl font-semibold text-center mb-2 text-gray-800 dark:text-gray-200' },
                   gameState === 'playing' && !finished && currentGroup ? `תרגול בנושא: ${currentGroup.topic || 'כללי'} | רמה: ${getDifficultyText(selectedDifficultyRange)}` : ''
-              ),
-              // שורת סטטוס
+              ), // פסיק נוסף
               createElement('div', { className: 'flex justify-center items-center space-x-4 space-x-reverse text-sm text-gray-600 dark:text-gray-400 mb-2 w-full' },
                   gameState === 'playing' && !finished && currentGroup ? [
                       createElement('span', { key: 'count' }, `תרגול: ${sessionExerciseCount > 0 ? sessionExerciseCount : '?'}/${totalGroupsInSelection > 0 ? totalGroupsInSelection : '?'}`),
@@ -231,12 +225,10 @@ function App() {
                       createElement('span', { key: 'sep2', className: 'opacity-50'}, '|'),
                       createElement('span', { key: 'timer' }, `זמן: ${formatTime(timer)}`)
                   ] : null
-              ),
-               // הוראות
+              ), // פסיק נוסף
               createElement('p', { className: 'text-center text-sm text-gray-500 dark:text-gray-400 mb-3' },
                   gameState === 'playing' && !finished && currentGroup ? 'סדר/י את המשפטים הבאים לפי שרשרת של סיבות ותוצאה' : ''
-              ),
-              // אזור המשפטים
+              ), // פסיק נוסף
               createElement( 'div', {
                   id: 'sortable-container',
                   ref: containerRef,
@@ -245,24 +237,22 @@ function App() {
                   isLoading ? createElement('div', { className: 'text-center p-4 text-gray-500 dark:text-gray-400' }, 'טוען...')
                   : !finished && currentGroup ? currentGroup.sentences.map((s, index) => renderSentence(s, index))
                   : null
-              ),
-              // כפתור פעולה (ממורכז)
-              actionButton,
-               // הודעת סיום
+              ), // פסיק נוסף
+              actionButton, // פסיק נוסף
               createElement('div', { className: 'text-center mt-4' },
                   gameState === 'playing' && finished ? [
                       createElement('h2', { key:'fin-h2', className: 'text-2xl font-bold text-green-600 dark:text-green-400'}, '🎉 כל הכבוד! 🎉'),
                       createElement('p', { key:'fin-p', className: 'text-lg text-gray-700 dark:text-gray-300 mt-1'}, `סיימת את כל ${totalGroupsInSelection} התרגולים בבחירה זו!`)
                   ] : null
               )
-          ) // סוף פרגמנט משחק
-    ), // סוף Container מרכזי
+          )
+    ),
 
-    createElement(Footer, null), // פוטר
+    createElement(Footer, null), // <-- קריאה לפוטר
 
-    ToastComponent // הודעות קופצות
+    ToastComponent
   );
 } // סוף קומפוננטת App
 
-// Render the App (ללא שינוי)
+// Render the App
 ReactDOM.createRoot(document.getElementById('root')).render(createElement(App));
