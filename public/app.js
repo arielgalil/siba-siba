@@ -46,21 +46,37 @@ function GameSetup({ initialDifficultyRange, initialTopics, onStartGame, allGrou
     const handleSelectAllTopics = () => { setSelectedTopicsInternal(prevTopics => { if (prevTopics.size === actualAvailableTopics.length) { return new Set(); } else { return new Set(actualAvailableTopics); } }); };
     const handleStartClick = () => { if (selectedTopicsInternal.size === 0) { alert('יש לבחור לפחות נושא אחד'); return; } onStartGame(difficultyOptions[difficultyKey].range, selectedTopicsInternal, availableCount); };
 
-    // *** SelectionButton - חזרה לגודל ולצבע המקוריים ***
-    const SelectionButton = ({ text, isSelected, type, onClick }) => { // הוסרה האופציה isAllOption
-        // *** חזרה לגודל מקורי ***
+    // *** SelectionButton - גודל מקורי, צבע שונה ל"הכל" ***
+    const SelectionButton = ({ text, isSelected, type, onClick, isAllOption = false }) => { // החזרנו isAllOption
         const baseClasses = "flex items-center justify-center space-x-2 space-x-reverse px-3 py-2 border rounded-xl cursor-pointer transition-colors duration-200 w-full text-center text-sm sm:text-base"; // גודל מקורי
-        // *** חזרה לצבע כחול סטנדרטי ***
-        const selectedClasses = "bg-blue-500 border-blue-700 text-white dark:bg-blue-600 dark:border-blue-800";   // כחול סטנדרטי לבחירה
-        const unselectedClasses = "bg-gray-100 border-gray-300 text-gray-800 hover:bg-gray-200 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-600";
-        // *** חזרה לגודל אייקון מקורי ***
-        const radioCheckboxBase = `inline-flex items-center justify-center w-4 h-4 border rounded-${type === 'radio' ? 'full' : 'md'} mr-2 flex-shrink-0 ring-1 ring-inset`; // גודל מקורי
-        // *** חזרה לצבע כחול סטנדרטי ***
-        const radioCheckboxSelectedClasses = isSelected ? `bg-white border-blue-500 dark:bg-gray-200 dark:border-blue-600 ring-blue-300 dark:ring-blue-700` : 'border-gray-400 dark:border-gray-500 ring-transparent';
-        // *** חזרה לגודל ולצבע כחול סטנדרטי ***
-        const innerMark = isSelected ? createElement('span', { className: `block w-2 h-2 rounded-${type === 'radio' ? 'full' : 'sm'} bg-blue-500 dark:bg-blue-600` }) : null; // גודל וצבע מקוריים
+        const isAllSelectedStyle = isAllOption && isSelected;
 
-        return createElement( 'button', { type: 'button', className: `${baseClasses} ${isSelected ? selectedClasses : unselectedClasses}`, onClick: onClick },
+        // *** שינוי: קביעת ערכת צבעים - Teal ל"הכל" נבחר, Blue לשאר ***
+        const colorTheme = isAllSelectedStyle ? 'teal' : 'blue'; // למשל, teal-500 / teal-600
+
+        let buttonStateClasses;
+        if (isSelected) {
+            // שימוש ב-colorTheme שנקבע
+            buttonStateClasses = `bg-${colorTheme}-500 border-${colorTheme}-700 text-white dark:bg-${colorTheme}-600 dark:border-${colorTheme}-800`;
+        } else {
+            buttonStateClasses = "bg-gray-100 border-gray-300 text-gray-800 hover:bg-gray-200 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-600"; // לא נבחר
+        }
+
+        const radioCheckboxBase = `inline-flex items-center justify-center w-4 h-4 border rounded-${type === 'radio' ? 'full' : 'md'} mr-2 flex-shrink-0 ring-1 ring-inset`; // גודל מקורי
+        let radioCheckboxSelectedClasses;
+        if (isSelected) {
+            // שימוש ב-colorTheme שנקבע
+            radioCheckboxSelectedClasses = `bg-white border-${colorTheme}-500 dark:bg-gray-200 dark:border-${colorTheme}-600 ring-${colorTheme}-300 dark:ring-${colorTheme}-700`;
+        } else {
+            radioCheckboxSelectedClasses = 'border-gray-400 dark:border-gray-500 ring-transparent'; // לא נבחר
+        }
+
+        const innerMark = isSelected
+             // שימוש ב-colorTheme שנקבע
+             ? createElement('span', { className: `block w-2 h-2 rounded-${type === 'radio' ? 'full' : 'sm'} bg-${colorTheme}-500 dark:bg-${colorTheme}-600` }) // גודל מקורי
+             : null;
+
+        return createElement( 'button', { type: 'button', className: `${baseClasses} ${buttonStateClasses}`, onClick: onClick },
             createElement('span', { className: `${radioCheckboxBase} ${radioCheckboxSelectedClasses}` }, innerMark),
             createElement('span', { className: 'flex-grow' }, text)
         );
@@ -71,29 +87,27 @@ function GameSetup({ initialDifficultyRange, initialTopics, onStartGame, allGrou
         createElement('h2', { className: 'text-xl sm:text-2xl font-semibold text-center mb-4 text-gray-900 dark:text-gray-100' }, 'הגדרות משחק'),
         createElement('div', { className: 'mb-6' },
             createElement('h3', { className: 'text-lg font-medium mb-2 text-gray-800 dark:text-gray-200' }, 'בחר רמת קושי:'),
-            // *** חזרה לרווח המקורי ***
             createElement('div', { className: 'grid grid-cols-2 sm:grid-cols-4 gap-3' }, // רווח מקורי
                 Object.entries(difficultyOptions).map(([key, { label }]) =>
-                    // *** קריאה ללא isAllOption ***
-                    createElement(SelectionButton, { key: key, text: label, isSelected: difficultyKey === key, type: 'radio', onClick: () => handleDifficultyChange(key) })
+                    // *** העברת isAllOption לכפתור "הכל" ***
+                    createElement(SelectionButton, { key: key, text: label, isSelected: difficultyKey === key, type: 'radio', onClick: () => handleDifficultyChange(key), isAllOption: key === 'all' })
                 )
             )
         ),
         createElement('div', { className: 'mb-6' },
             createElement('h3', { className: 'text-lg font-medium mb-2 text-gray-800 dark:text-gray-200' }, 'בחר נושאים (אחד או יותר):'),
-            // *** חזרה לרווח המקורי ***
             createElement('div', { className: 'grid grid-cols-2 sm:grid-cols-3 gap-3' }, // רווח מקורי
-                 // *** קריאה ללא isAllOption ***
-                 createElement(SelectionButton, { key: 'all-topics', text: 'הכל', isSelected: selectedTopicsInternal.size === actualAvailableTopics.length && actualAvailableTopics.length > 0, type: 'checkbox', onClick: handleSelectAllTopics }),
+                 // *** העברת isAllOption לכפתור "הכל" ***
+                 createElement(SelectionButton, { key: 'all-topics', text: 'הכל', isSelected: selectedTopicsInternal.size === actualAvailableTopics.length && actualAvailableTopics.length > 0, type: 'checkbox', onClick: handleSelectAllTopics, isAllOption: true }),
                  actualAvailableTopics.map(topic =>
-                    // *** קריאה ללא isAllOption ***
-                    createElement(SelectionButton, { key: topic, text: topic, isSelected: selectedTopicsInternal.has(topic), type: 'checkbox', onClick: () => handleTopicToggle(topic) })
+                    // *** isAllOption=false (או מושמט) לכפתורים רגילים ***
+                    createElement(SelectionButton, { key: topic, text: topic, isSelected: selectedTopicsInternal.has(topic), type: 'checkbox', onClick: () => handleTopicToggle(topic), isAllOption: false })
                 )
             )
         ),
-        // *** כפתור התחל משחק - הקטנה נשארת ***
+        // כפתור התחל משחק - מוקטן
         createElement('button', {
-            className: `w-full py-2 px-5 text-base rounded-full font-semibold transition-opacity duration-300 flex items-center justify-center ${ selectedTopicsInternal.size === 0 || availableCount === 0 ? 'bg-gray-400 text-gray-700 cursor-not-allowed dark:bg-gray-600 dark:text-gray-400' : 'bg-green-500 text-white hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700' } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800`, // הקטנו padding וגודל טקסט
+            className: `w-full py-2 px-5 text-base rounded-full font-semibold transition-opacity duration-300 flex items-center justify-center ${ selectedTopicsInternal.size === 0 || availableCount === 0 ? 'bg-gray-400 text-gray-700 cursor-not-allowed dark:bg-gray-600 dark:text-gray-400' : 'bg-green-500 text-white hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700' } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800`, // הקטנה נשמרת
             onClick: handleStartClick,
             disabled: selectedTopicsInternal.size === 0 || availableCount === 0
         },
@@ -150,19 +164,23 @@ function App() {
   // --- JSX-like Rendering ---
   const ToastComponent = toast.show ? createElement( 'div', { className: `toast fixed top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-4 rounded-lg shadow-lg text-white text-base z-50 transition-all duration-300 ease-out ${ toast.type === 'success' ? 'bg-green-500' : toast.type === 'info' ? 'bg-blue-500' : 'bg-red-500' } ${toast.show ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}` }, toast.message) : null;
 
-// *** GameHeader עם תיקון רוחב לניקוד ***
+// *** GameHeader עם הוספת רמת הקושי לכותרת המשנה ***
 const GameHeader = () => {
     const topRow = createElement('div', {className: 'flex justify-between items-center w-full max-w-4xl mx-auto px-4 pt-2'},
-        // *** שינוי: הגדלת רוחב אלמנט האיזון מימין ***
-        createElement('div', {className: 'w-20 min-w-[0px]'}), // הגדלנו מעט את הרוחב כדי לאזן
+        createElement('div', {className: 'w-20 min-w-[0px]'}), // אלמנט ריק לימין
         createElement('h1', { className: 'title text-xl sm:text-2xl font-bold text-center text-gray-900 dark:text-gray-100 flex-1 px-2' }, 'שרשרת סיבות ⛓️‍💥‏‏'),
-        // *** שינוי: הגדלת רוחב ל-div של המשתמש/ניקוד ***
-        createElement('div', {className: 'text-right w-20'}, // הגדלנו את הרוחב ל-w-20
+        createElement('div', {className: 'text-right w-20'}, // שם וניקוד לשמאל (עם רוחב מתוקן)
             createElement('div', {className: 'text-sm font-medium text-gray-700 dark:text-gray-300 truncate'}, userName || 'אורח'),
             createElement('div', {className: 'text-xs text-gray-500 dark:text-gray-400 mt-0.5', ref: scoreRef}, `ניקוד: ${String(score).padStart(5, '0')}`)
         )
     );
-    const topicSubtitle = gameState === 'playing' && !finished && currentGroup ? createElement('h2', { className: 'text-lg font-semibold text-center mt-2 text-gray-800 dark:text-gray-200' }, `תרגול בנושא: ${currentGroup.topic || 'כללי'}`) : null;
+    // *** שינוי: הוספת רמת הקושי לכותרת המשנה ***
+    const topicSubtitle = gameState === 'playing' && !finished && currentGroup ?
+        createElement('h2', { className: 'text-lg font-semibold text-center mt-2 text-gray-800 dark:text-gray-200' },
+            // טקסט חדש המשלב נושא ורמה
+            `תרגול בנושא: ${currentGroup.topic || 'כללי'} | רמה: ${getDifficultyText(selectedDifficultyRange)}`
+        ) : null;
+    // ------------------------------------------
     const statusBar = gameState === 'playing' && !finished && currentGroup ? createElement('div', { className: 'flex justify-center items-center space-x-4 space-x-reverse text-sm text-gray-600 dark:text-gray-400 mt-1 w-full max-w-md mx-auto' }, createElement('span', null, `תרגול: ${sessionExerciseCount > 0 ? sessionExerciseCount : '?'}/${totalGroupsInSelection > 0 ? totalGroupsInSelection : '?'}`), createElement('span', {className: 'opacity-50'}, '|'), createElement('span', null, `ניסיונות: ${attempts}`), createElement('span', {className: 'opacity-50'}, '|'), createElement('span', null, `זמן: ${formatTime(timer)}`) ) : null;
     const instructions = gameState === 'playing' && !finished && currentGroup ? createElement('p', { className: 'text-center text-sm text-gray-500 dark:text-gray-400 mt-2 mb-3' }, 'סדר/י את המשפטים הבאים לפי שרשרת של סיבות ותוצאה') : null;
     const finishMessage = gameState === 'playing' && finished ? createElement('div', { className: 'text-center my-4 p-4'}, createElement('h2', {className: 'text-2xl font-bold text-green-600 dark:text-green-400'}, '🎉 כל הכבוד! 🎉'), createElement('p', {className: 'text-lg text-gray-700 dark:text-gray-300 mt-1'}, `סיימת את כל ${totalGroupsInSelection} התרגולים בבחירה זו!`) ) : null;
