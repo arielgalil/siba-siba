@@ -31,26 +31,35 @@
         color-scheme: light dark;
       }
       /* Prevent number input spinner */
-       input[type=number]::-webkit-inner-spin-button,
-       input[type=number]::-webkit-outer-spin-button {
-           -webkit-appearance: none;
-           margin: 0;
+      input[type="number"]::-webkit-inner-spin-button,
+      input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      input[type="number"] {
+        -moz-appearance: textfield; /* Firefox */
+      }
+      /* Style disabled elements more clearly */
+      button:disabled,
+      input:disabled,
+      select:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+      select:disabled {
+        background-color: #e5e7eb; /* Tailwind gray-200 */
+      }
+      .dark select:disabled {
+        background-color: #4b5563; /* Tailwind gray-600 */
+      }
+       /* Style for validation errors in import */
+      #importStatus.error {
+          color: #dc2626; /* Tailwind red-600 */
+          font-weight: bold;
+      }
+       .dark #importStatus.error {
+           color: #f87171; /* Tailwind red-400 */
        }
-       input[type=number] {
-           -moz-appearance: textfield; /* Firefox */
-       }
-       /* Style disabled elements more clearly */
-        button:disabled, input:disabled, select:disabled {
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
-        select:disabled {
-             background-color: #e5e7eb; /* Tailwind gray-200 */
-        }
-        .dark select:disabled {
-             background-color: #4b5563; /* Tailwind gray-600 */
-        }
-
     </style>
   </head>
   <body
@@ -92,6 +101,13 @@
       >
         📜 ייבא קבוצות
       </button>
+      <button
+        id="exportBtn"
+        class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 hidden"
+        disabled
+      >
+        📤 יצא הכל
+      </button>
     </div>
 
     <div
@@ -107,7 +123,15 @@
         id="importText"
         rows="10"
         class="w-full p-2 border rounded bg-white dark:bg-gray-700 mb-2"
-        placeholder="נושא הקבוצה הראשונה&#10;3&#10;משפט א&#10;*משפט ב (נעול)&#10;&#10;נושא הקבוצה השנייה&#10;1&#10;*משפט ג (נעול)&#10;משפט ד"
+        placeholder="נושא הקבוצה הראשונה
+3
+משפט א
+*משפט ב (נעול)
+
+נושא הקבוצה השנייה
+1
+*משפט ג (נעול)
+משפט ד"
       ></textarea>
       <button
         id="submitImportBtn"
@@ -121,25 +145,35 @@
       ></div>
     </div>
 
-    <div class="mb-4 w-full max-w-xl">
-        <input
-          type="search"
-          id="searchInput"
-          placeholder="חיפוש לפי טקסט בנושא או במשפטים..."
-          class="w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-          disabled
-        />
-      </div>
-    <div class="mb-6 flex flex-wrap gap-4 justify-center items-center w-full max-w-xl">
+     <div class="mb-4 w-full max-w-xl">
+      <input
+        type="search"
+        id="searchInput"
+        placeholder="חיפוש לפי טקסט בנושא או במשפטים..."
+        class="w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+        disabled
+      />
+    </div>
+    <div
+      class="mb-6 flex flex-wrap gap-4 justify-center items-center w-full max-w-xl"
+    >
       <label class="block whitespace-nowrap">
         סינון נושא:
-        <select id="topicFilter" class="p-1 border rounded bg-white dark:bg-gray-700" disabled>
+        <select
+          id="topicFilter"
+          class="p-1 border rounded bg-white dark:bg-gray-700"
+          disabled
+        >
           <option value="all">הכל</option>
           </select>
       </label>
       <label class="block whitespace-nowrap">
         סינון רמה:
-        <select id="difficultyFilter" class="p-1 border rounded bg-white dark:bg-gray-700" disabled>
+        <select
+          id="difficultyFilter"
+          class="p-1 border rounded bg-white dark:bg-gray-700"
+          disabled
+        >
           <option value="all">הכל</option>
           <option value="1">1</option>
           <option value="2">2</option>
@@ -148,9 +182,14 @@
           <option value="5">5</option>
         </select>
       </label>
-      <button id="clearFiltersBtn" class="px-3 py-1 bg-gray-400 text-black rounded hover:bg-gray-500" disabled>נקה סינונים</button>
+      <button
+        id="clearFiltersBtn"
+        class="px-3 py-1 bg-gray-400 text-black rounded hover:bg-gray-500"
+        disabled
+      >
+        נקה סינונים
+      </button>
     </div>
-
 
     <div class="flex items-center mb-6 space-x-2 space-x-reverse">
       <button
@@ -179,19 +218,21 @@
     </div>
 
     <div id="group-container" class="w-full max-w-xl min-h-[200px]">
-        <p class="text-center text-gray-500 dark:text-gray-400">טוען נתונים...</p>
+      <p class="text-center text-gray-500 dark:text-gray-400">
+        טוען נתונים...
+      </p>
     </div>
 
     <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
       import {
         getAuth,
         signInAnonymously,
         onAuthStateChanged,
         GoogleAuthProvider,
         signInWithPopup,
-        setPersistence,             // *** Added for persistence ***
-        browserLocalPersistence     // *** Added for persistence ***
+        setPersistence,
+        browserLocalPersistence,
       } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
       import {
         getDatabase,
@@ -201,7 +242,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebas
         set,
         remove,
         child,
-        get
+        get,
       } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
 
       // --- Firebase Configuration ---
@@ -216,7 +257,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebas
         measurementId: "G-ZY245YB23E",
       };
       const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app); // Get auth object
+      const auth = getAuth(app);
       const db = getDatabase(app);
       const groupsRef = ref(db, "collections/groups");
 
@@ -226,6 +267,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebas
       const newBtn = document.getElementById("newGroupBtn");
       const delBtn = document.getElementById("deleteGroupBtn");
       const importBtn = document.getElementById("importBtn");
+      const exportBtn = document.getElementById("exportBtn"); // New export button
       const importContainer = document.getElementById("importContainer");
       const importText = document.getElementById("importText");
       const submitImportBtn = document.getElementById("submitImportBtn");
@@ -235,10 +277,10 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebas
       const nextBtn = document.getElementById("nextBtn");
       const groupInp = document.getElementById("groupInput");
       const groupCountEl = document.getElementById("groupCount");
-      const searchInput = document.getElementById('searchInput');
-      const topicFilter = document.getElementById('topicFilter');
-      const difficultyFilter = document.getElementById('difficultyFilter');
-      const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+      const searchInput = document.getElementById("searchInput");
+      const topicFilter = document.getElementById("topicFilter");
+      const difficultyFilter = document.getElementById("difficultyFilter");
+      const clearFiltersBtn = document.getElementById("clearFiltersBtn");
 
       // --- Global State Variables ---
       const TOPICS = ["כללי", "התא", "גוף האדם", "אקולוגיה", "מעבדה"];
@@ -251,206 +293,869 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebas
       let isAddingNewGroup = false;
       let newGroupDataBuffer = null;
       let currentAuthUser = null;
-      let currentSearchTerm = '';
-      let currentTopicFilter = 'all';
-      let currentDifficultyFilter = 'all';
+      let currentSearchTerm = "";
+      let currentTopicFilter = "all";
+      let currentDifficultyFilter = "all";
       let focusOnOriginalIndexAfterUpdate = -1; // Flag to restore view after edit
 
       // --- Initialization ---
-      const topicOptionsHTML = TOPICS.map(t => `<option value="${t}">${t}</option>`).join('');
+      const topicOptionsHTML = TOPICS.map(
+        (t) => `<option value="${t}">${t}</option>`
+      ).join("");
       topicFilter.innerHTML += topicOptionsHTML;
 
       // --- Authentication Setup ---
-       function initializeAuthListener() {
-           onAuthStateChanged(auth, (u) => {
-               currentAuthUser = u;
-               if (u) {
-                   const isGoogleSignIn = u.providerData.some((p) => p.providerId === "google.com");
-                   if (isGoogleSignIn) {
-                       googleBtn.classList.add("hidden");
-                       statusEl.innerText = `מחובר: ${u.email}`;
-                       checkAdminStatus(u.uid); // Checks admin then calls listenForGroups
-                   } else {
-                       // Still signed in, but anonymously
-                       googleBtn.classList.remove("hidden");
-                       statusEl.innerText = "מחובר אנונימית. התחבר עם גוגל לניהול.";
-                       admin = false; // Anonymous is not admin
-                       updateAdminUI();
-                       listenForGroups(); // Listen for data as anonymous user
-                   }
-               } else {
-                   // Not signed in
-                   googleBtn.classList.remove("hidden");
-                   statusEl.innerText = "אינך מחובר. התחבר עם גוגל לניהול.";
-                   admin = false;
-                   updateAdminUI();
-                   allGroups = []; // Clear data
-                   edit = false;
-                   isAddingNewGroup = false;
-                   applyFiltersAndSearch(); // Render empty state
-                   // Optional: Trigger initial anonymous sign-in again if desired
-                   // signInAnonymously(auth).catch(/* ... */);
-               }
-           });
-       }
-
-      // *** Set persistence BEFORE initializing the listener ***
-      setPersistence(auth, browserLocalPersistence)
-          .then(() => {
-              console.log("Firebase Auth persistence set to local.");
-              // Now that persistence is set, initialize the auth state listener
-              initializeAuthListener();
-          })
-          .catch((error) => {
-              console.error("Error setting Firebase Auth persistence:", error);
-              statusEl.innerText = "שגיאה בהגדרת שמירת התחברות. ייתכן שתצטרך להתחבר שוב.";
-              // Initialize listener anyway, it will likely show "not signed in" state
-              initializeAuthListener();
-          });
-
-      // --- Rest of the Auth and UI Logic ---
-      const provider = new GoogleAuthProvider();
-      googleBtn.onclick = () => signInWithPopup(auth, provider).catch((e) => (statusEl.innerText = "שגיאת התחברות גוגל: " + e.message));
-
-      function checkAdminStatus(uid) {
-           const adminRef = ref(db, `admins/${uid}`);
-           get(adminRef).then((snapshot) => { // Use get() for one-time check
-               admin = snapshot.exists() && snapshot.val() === true;
-               updateAdminUI();
-               if (!admin && statusEl.innerText.startsWith("מחובר:")) { statusEl.innerText += " (לא מנהל)"; }
-               listenForGroups(); // Listen *after* confirming admin status
-           }).catch(error => {
-                console.error("Error checking admin status:", error);
-                admin = false; updateAdminUI(); listenForGroups(); // Assume not admin, but still listen
-           });
-      }
-
-      function updateAdminUI() { if (admin) { newBtn.classList.remove("hidden"); delBtn.classList.remove("hidden"); importBtn.classList.remove("hidden"); } else { newBtn.classList.add("hidden"); delBtn.classList.add("hidden"); importBtn.classList.add("hidden"); importContainer.classList.remove("visible"); if (edit) { cancelEditOrAdd(); } } render(); updateNav(); }
-
-      // --- Data Handling ---
-      function listenForGroups() {
-        onValue(groupsRef, (snap) => {
-          const groupsData = snap.val(); let processedGroups = [];
-          if (groupsData) { if (Array.isArray(groupsData)) { processedGroups = groupsData.map((group, index) => group && typeof index === 'number' && !isNaN(index) ? { ...group, originalIndex: index } : null).filter(group => group !== null); } else if (typeof groupsData === 'object') { processedGroups = Object.entries(groupsData).map(([key, group]) => { const index = parseInt(key, 10); return (group && !isNaN(index)) ? { ...group, originalIndex: index } : null; }).filter(group => group !== null).sort((a, b) => a.originalIndex - b.originalIndex); } }
-          allGroups = processedGroups;
-
-          if ((edit || isAddingNewGroup) && allGroups.length === 0) { cancelEditOrAdd(); }
-
-          applyFiltersAndSearch(); // Apply filters first
-
-          // --- Focus/Restore Logic ---
-          if (focusOnOriginalIndexAfterUpdate !== -1) { // Priority: Focus after update
-              const targetFilteredIndex = filteredGroups.findIndex(g => g.originalIndex === focusOnOriginalIndexAfterUpdate);
-              if (targetFilteredIndex !== -1) { filteredIdx = targetFilteredIndex; }
-              else { filteredIdx = Math.max(0, filteredGroups.length - 1); if (filteredGroups.length === 0) filteredIdx = 0; }
-              console.log(`Listener: Focused/Reset after update. Target Orig Idx: ${focusOnOriginalIndexAfterUpdate}, New Filt Idx: ${filteredIdx}`);
-              focusOnOriginalIndexAfterUpdate = -1; // Reset flag
-          } else if (!edit) { // General restoration logic (only if not editing and not focusing)
-               let currentlyViewedOriginalIndex = -1;
-               // Ensure filteredIdx is valid before accessing filteredGroups[filteredIdx]
-               if (filteredGroups.length > 0 && filteredIdx >= 0 && filteredIdx < filteredGroups.length && filteredGroups[filteredIdx]?.originalIndex !== undefined) {
-                   currentlyViewedOriginalIndex = filteredGroups[filteredIdx].originalIndex;
-               }
-              if (currentlyViewedOriginalIndex !== -1) {
-                  const restoredFilteredIndex = filteredGroups.findIndex(g => g.originalIndex === currentlyViewedOriginalIndex);
-                  if (restoredFilteredIndex !== -1) { filteredIdx = restoredFilteredIndex; } // Restore
-                  else { filteredIdx = Math.max(0, filteredGroups.length - 1); if (filteredGroups.length === 0) filteredIdx = 0; } // Default if not found
-              } else { // Default if nothing was viewed or index was invalid
-                   filteredIdx = Math.max(0, filteredGroups.length - 1); if (filteredGroups.length === 0) filteredIdx = 0;
-              }
+      function initializeAuthListener() {
+        onAuthStateChanged(auth, (u) => {
+          currentAuthUser = u;
+          if (u) {
+            const isGoogleSignIn = u.providerData.some(
+              (p) => p.providerId === "google.com"
+            );
+            if (isGoogleSignIn) {
+              googleBtn.classList.add("hidden");
+              statusEl.innerText = `מחובר: ${u.email}`;
+              checkAdminStatus(u.uid); // Checks admin then calls listenForGroups
+            } else {
+              googleBtn.classList.remove("hidden");
+              statusEl.innerText =
+                "מחובר אנונימית. התחבר עם גוגל לניהול.";
+              admin = false; // Anonymous is not admin
+              updateAdminUI();
+              listenForGroups(); // Listen for data as anonymous user
+            }
+          } else {
+            googleBtn.classList.remove("hidden");
+            statusEl.innerText = "אינך מחובר. התחבר עם גוגל לניהול.";
+            admin = false;
+            updateAdminUI();
+            allGroups = []; // Clear data
+            edit = false;
+            isAddingNewGroup = false;
+            applyFiltersAndSearch(); // Render empty state
           }
-          // --- End Focus/Restore Logic ---
-
-          updateStatusMessage(); render(); updateNav();
-
-        }, (error) => {
-          console.error("Error fetching groups:", error); statusEl.innerText = "שגיאה בקריאת נתונים."; allGroups = []; edit = false; isAddingNewGroup = false; applyFiltersAndSearch(); updateStatusMessage(); render(); updateNav();
         });
       }
 
-       function updateStatusMessage() { if (edit) { statusEl.innerText = isAddingNewGroup ? 'מילוי פרטי קבוצה חדשה...' : `עריכת קבוצה...`; return; } if (allGroups.length === 0) { statusEl.innerText = admin ? "אין קבוצות. הוסף או ייבא." : "אין קבוצות להצגה."; } else if (filteredGroups.length === 0) { statusEl.innerText = `לא נמצאו קבוצות בסינון מתוך ${allGroups.length}.`; } else { statusEl.innerText = `מציג ${filteredGroups.length} מתוך ${allGroups.length} (${filteredIdx + 1}/${filteredGroups.length})`; } }
+      setPersistence(auth, browserLocalPersistence)
+        .then(() => {
+          console.log("Firebase Auth persistence set to local.");
+          initializeAuthListener();
+        })
+        .catch((error) => {
+          console.error("Error setting Firebase Auth persistence:", error);
+          statusEl.innerText =
+            "שגיאה בהגדרת שמירת התחברות. ייתכן שתצטרך להתחבר שוב.";
+          initializeAuthListener();
+        });
+
+      const provider = new GoogleAuthProvider();
+      googleBtn.onclick = () =>
+        signInWithPopup(auth, provider).catch(
+          (e) => (statusEl.innerText = "שגיאת התחברות גוגל: " + e.message)
+        );
+
+      function checkAdminStatus(uid) {
+        const adminRef = ref(db, `admins/${uid}`);
+        get(adminRef)
+          .then((snapshot) => {
+            admin = snapshot.exists() && snapshot.val() === true;
+            updateAdminUI();
+            if (!admin && statusEl.innerText.startsWith("מחובר:")) {
+              statusEl.innerText += " (לא מנהל)";
+            }
+            listenForGroups(); // Listen *after* confirming admin status
+          })
+          .catch((error) => {
+            console.error("Error checking admin status:", error);
+            admin = false;
+            updateAdminUI();
+            listenForGroups(); // Assume not admin, but still listen
+          });
+      }
+
+      function updateAdminUI() {
+        if (admin) {
+          newBtn.classList.remove("hidden");
+          delBtn.classList.remove("hidden");
+          importBtn.classList.remove("hidden");
+          exportBtn.classList.remove("hidden"); // Show export button for admin
+        } else {
+          newBtn.classList.add("hidden");
+          delBtn.classList.add("hidden");
+          importBtn.classList.add("hidden");
+          exportBtn.classList.add("hidden"); // Hide export button if not admin
+          importContainer.classList.remove("visible");
+          if (edit) {
+            cancelEditOrAdd();
+          }
+        }
+        render();
+        updateNav();
+      }
+
+      // --- Data Handling ---
+      function listenForGroups() {
+        onValue(
+          groupsRef,
+          (snap) => {
+            const groupsData = snap.val();
+            let processedGroups = [];
+            if (groupsData) {
+              if (Array.isArray(groupsData)) {
+                processedGroups = groupsData
+                  .map((group, index) =>
+                    group && typeof index === "number" && !isNaN(index)
+                      ? { ...group, originalIndex: index }
+                      : null
+                  )
+                  .filter((group) => group !== null);
+              } else if (typeof groupsData === "object") {
+                processedGroups = Object.entries(groupsData)
+                  .map(([key, group]) => {
+                    const index = parseInt(key, 10);
+                    return group && !isNaN(index)
+                      ? { ...group, originalIndex: index }
+                      : null;
+                  })
+                  .filter((group) => group !== null)
+                  .sort((a, b) => a.originalIndex - b.originalIndex);
+              }
+            }
+            allGroups = processedGroups;
+
+            if ((edit || isAddingNewGroup) && allGroups.length === 0) {
+              cancelEditOrAdd();
+            }
+
+            applyFiltersAndSearch(); // Apply filters first
+
+            // Focus/Restore Logic (unchanged)
+            if (focusOnOriginalIndexAfterUpdate !== -1) {
+              const targetFilteredIndex = filteredGroups.findIndex(
+                (g) => g.originalIndex === focusOnOriginalIndexAfterUpdate
+              );
+              if (targetFilteredIndex !== -1) {
+                filteredIdx = targetFilteredIndex;
+              } else {
+                filteredIdx = Math.max(0, filteredGroups.length - 1);
+                if (filteredGroups.length === 0) filteredIdx = 0;
+              }
+              focusOnOriginalIndexAfterUpdate = -1;
+            } else if (!edit) {
+              let currentlyViewedOriginalIndex = -1;
+              if (
+                filteredGroups.length > 0 &&
+                filteredIdx >= 0 &&
+                filteredIdx < filteredGroups.length &&
+                filteredGroups[filteredIdx]?.originalIndex !== undefined
+              ) {
+                currentlyViewedOriginalIndex =
+                  filteredGroups[filteredIdx].originalIndex;
+              }
+              if (currentlyViewedOriginalIndex !== -1) {
+                const restoredFilteredIndex = filteredGroups.findIndex(
+                  (g) => g.originalIndex === currentlyViewedOriginalIndex
+                );
+                if (restoredFilteredIndex !== -1) {
+                  filteredIdx = restoredFilteredIndex;
+                } else {
+                  filteredIdx = Math.max(0, filteredGroups.length - 1);
+                  if (filteredGroups.length === 0) filteredIdx = 0;
+                }
+              } else {
+                filteredIdx = Math.max(0, filteredGroups.length - 1);
+                if (filteredGroups.length === 0) filteredIdx = 0;
+              }
+            }
+
+            updateStatusMessage();
+            render();
+            updateNav();
+          },
+          (error) => {
+            console.error("Error fetching groups:", error);
+            statusEl.innerText = "שגיאה בקריאת נתונים.";
+            allGroups = [];
+            edit = false;
+            isAddingNewGroup = false;
+            applyFiltersAndSearch();
+            updateStatusMessage();
+            render();
+            updateNav();
+          }
+        );
+      }
+
+      function updateStatusMessage() {
+        if (edit) {
+          statusEl.innerText = isAddingNewGroup
+            ? "מילוי פרטי קבוצה חדשה..."
+            : `עריכת קבוצה...`;
+          return;
+        }
+        if (allGroups.length === 0) {
+          statusEl.innerText = admin
+            ? "אין קבוצות. הוסף או ייבא."
+            : "אין קבוצות להצגה.";
+        } else if (filteredGroups.length === 0) {
+          statusEl.innerText = `לא נמצאו קבוצות בסינון מתוך ${allGroups.length}.`;
+        } else {
+          statusEl.innerText = `מציג ${filteredGroups.length} מתוך ${allGroups.length} (${
+            filteredIdx + 1
+          }/${filteredGroups.length})`;
+        }
+      }
 
       // --- Filtering and Searching ---
-      function applyFiltersAndSearch() { const searchTerm = currentSearchTerm.toLowerCase(); filteredGroups = allGroups.filter((group) => { if (!group || !group.sentences || !Array.isArray(group.sentences) || typeof group.originalIndex !== 'number') { return false; } const diffMatch = currentDifficultyFilter === 'all' || group.difficulty == currentDifficultyFilter; const topicMatch = currentTopicFilter === 'all' || (group.topic || 'כללי') === currentTopicFilter; const searchMatch = searchTerm === '' || ((group.topic || '').toLowerCase().includes(searchTerm)) || group.sentences.some(s => s && s.text && s.text.toLowerCase().includes(searchTerm)); return diffMatch && topicMatch && searchMatch; }); }
+      function applyFiltersAndSearch() {
+        const searchTerm = currentSearchTerm.toLowerCase();
+        filteredGroups = allGroups.filter((group) => {
+          if (
+            !group ||
+            !group.sentences ||
+            !Array.isArray(group.sentences) ||
+            typeof group.originalIndex !== "number"
+          ) {
+            return false;
+          }
+          const diffMatch =
+            currentDifficultyFilter === "all" ||
+            group.difficulty == currentDifficultyFilter;
+          const topicMatch =
+            currentTopicFilter === "all" ||
+            (group.topic || "כללי") === currentTopicFilter;
+          const searchMatch =
+            searchTerm === "" ||
+            (group.topic || "").toLowerCase().includes(searchTerm) ||
+            group.sentences.some(
+              (s) => s && s.text && s.text.toLowerCase().includes(searchTerm)
+            );
+          return diffMatch && topicMatch && searchMatch;
+        });
+      }
 
       // --- Event Listeners for Search/Filter ---
-      searchInput.addEventListener('input', () => { if (edit) return; currentSearchTerm = searchInput.value; applyFiltersAndSearch(); filteredIdx = 0; render(); updateNav(); updateStatusMessage(); });
-      topicFilter.addEventListener('change', () => { if (edit) return; currentTopicFilter = topicFilter.value; applyFiltersAndSearch(); filteredIdx = 0; render(); updateNav(); updateStatusMessage(); });
-      difficultyFilter.addEventListener('change', () => { if (edit) return; currentDifficultyFilter = difficultyFilter.value; applyFiltersAndSearch(); filteredIdx = 0; render(); updateNav(); updateStatusMessage(); });
-      clearFiltersBtn.addEventListener('click', () => { if (edit) return; searchInput.value = ''; topicFilter.value = 'all'; difficultyFilter.value = 'all'; currentSearchTerm = ''; currentTopicFilter = 'all'; currentDifficultyFilter = 'all'; applyFiltersAndSearch(); filteredIdx = 0; render(); updateNav(); updateStatusMessage(); });
+      searchInput.addEventListener("input", () => {
+        if (edit) return;
+        currentSearchTerm = searchInput.value;
+        applyFiltersAndSearch();
+        filteredIdx = 0;
+        render();
+        updateNav();
+        updateStatusMessage();
+      });
+      topicFilter.addEventListener("change", () => {
+        if (edit) return;
+        currentTopicFilter = topicFilter.value;
+        applyFiltersAndSearch();
+        filteredIdx = 0;
+        render();
+        updateNav();
+        updateStatusMessage();
+      });
+      difficultyFilter.addEventListener("change", () => {
+        if (edit) return;
+        currentDifficultyFilter = difficultyFilter.value;
+        applyFiltersAndSearch();
+        filteredIdx = 0;
+        render();
+        updateNav();
+        updateStatusMessage();
+      });
+      clearFiltersBtn.addEventListener("click", () => {
+        if (edit) return;
+        searchInput.value = "";
+        topicFilter.value = "all";
+        difficultyFilter.value = "all";
+        currentSearchTerm = "";
+        currentTopicFilter = "all";
+        currentDifficultyFilter = "all";
+        applyFiltersAndSearch();
+        filteredIdx = 0;
+        render();
+        updateNav();
+        updateStatusMessage();
+      });
 
       // --- Group Actions ---
-      newBtn.onclick = () => { if (!admin || edit) return; edit = true; isAddingNewGroup = true; newGroupDataBuffer = { difficulty: 1, topic: "כללי", sentences: [{ text: "", movable: true }] }; originalIdx = -1; render(); updateNav(); updateStatusMessage(); };
-      delBtn.onclick = () => { if (!admin || edit || filteredGroups.length === 0) return; const groupToDelete = filteredGroups[filteredIdx]; if (!groupToDelete || typeof groupToDelete.originalIndex !== 'number') { statusEl.innerText = "שגיאה בזיהוי קבוצה."; return; } const idxToDelete = groupToDelete.originalIndex; if (!confirm(`למחוק את קבוצה "${groupToDelete.topic || 'כללי'} - רמה ${groupToDelete.difficulty}"?`)) return; statusEl.innerText = "מוחק..."; remove(ref(db, `collections/groups/${idxToDelete}`)).then(() => { statusEl.innerText = "נמחק"; }).catch((e) => { statusEl.innerText = "שגיאה במחיקה: " + e.message; }); };
+      newBtn.onclick = () => {
+        if (!admin || edit) return;
+        edit = true;
+        isAddingNewGroup = true;
+        newGroupDataBuffer = {
+          difficulty: 1,
+          topic: "כללי",
+          sentences: [{ text: "", movable: true }],
+        };
+        originalIdx = -1;
+        render();
+        updateNav();
+        updateStatusMessage();
+      };
+      delBtn.onclick = () => {
+        if (!admin || edit || filteredGroups.length === 0) return;
+        const groupToDelete = filteredGroups[filteredIdx];
+        if (
+          !groupToDelete ||
+          typeof groupToDelete.originalIndex !== "number"
+        ) {
+          statusEl.innerText = "שגיאה בזיהוי קבוצה.";
+          return;
+        }
+        const idxToDelete = groupToDelete.originalIndex;
+        if (
+          !confirm(
+            `למחוק את קבוצה "${groupToDelete.topic || "כללי"} - רמה ${
+              groupToDelete.difficulty
+            }"?`
+          )
+        )
+          return;
+        statusEl.innerText = "מוחק...";
+        remove(ref(db, `collections/groups/${idxToDelete}`))
+          .then(() => {
+            statusEl.innerText = "נמחק";
+            // Adjust index if deleting the last filtered item
+            if (filteredIdx >= filteredGroups.length) {
+               filteredIdx = Math.max(0, filteredGroups.length - 1);
+            }
+          })
+          .catch((e) => {
+            statusEl.innerText = "שגיאה במחיקה: " + e.message;
+          });
+      };
 
-      // --- Import Logic ---
-      importBtn.onclick = () => { if (!admin || edit) return; importContainer.classList.toggle("visible"); importStatusEl.innerText = ""; importText.value = ""; if (importContainer.classList.contains("visible") && edit) { cancelEditOrAdd(); } };
-      submitImportBtn.onclick = () => { if (!admin) return; const text = importText.value.trim(); if (!text) { importStatusEl.innerText = "תיבת טקסט ריקה."; return; } importStatusEl.innerText = "מעבד..."; const parsed = parseImportText(text); if (parsed.error) { importStatusEl.innerText = `שגיאת ניתוח: ${parsed.error}`; return; } if (parsed.groups.length === 0) { importStatusEl.innerText = "לא נמצאו קבוצות תקינות."; return; } importGroupsToFirebase(parsed.groups); };
-      function parseImportText(text) { const blocks = text.split(/\n\s*\n/); const newGroups = []; let error = null; blocks.forEach((block, blockIndex) => { if (error) return; const lines = block.trim().split("\n").map(l => l.trim()).filter(l => l); if (lines.length < 3) { if (lines.length > 0) { error = `בלוק ${blockIndex + 1}: חסר נושא/רמה/משפט.`; } return; } const topicLine = lines[0]; const topic = TOPICS.includes(topicLine) ? topicLine : "כללי"; let difficulty = 1; const difficultyLine = lines[1]; const parsedDifficulty = parseInt(difficultyLine, 10); if (!isNaN(parsedDifficulty) && parsedDifficulty >= 1 && parsedDifficulty <= 5) { difficulty = parsedDifficulty; } else { console.warn(`Invalid difficulty '${difficultyLine}'.`); } const sentences = lines.slice(2).map(line => { const isLocked = line.startsWith("*"); const text = isLocked ? line.substring(1).trim() : line; if (!text) return null; return { text: text, movable: !isLocked }; }).filter(s => s !== null); if (sentences.length === 0) { error = `בלוק ${blockIndex + 1} ("${topicLine}"): אין משפטים תקינים.`; return; } newGroups.push({ difficulty: difficulty, topic: topic, sentences: sentences }); }); return { groups: newGroups, error: error }; }
-      async function importGroupsToFirebase(parsedGroups) { if (!admin) return; importStatusEl.innerText = `מייבא ${parsedGroups.length}...`; try { const validIndices = allGroups.map(g => g.originalIndex).filter(idx => typeof idx === 'number' && !isNaN(idx)); const nextIdx = validIndices.length > 0 ? Math.max(...validIndices) + 1 : 0; if (isNaN(nextIdx)) { throw new Error("Could not determine next index."); } const updates = {}; parsedGroups.forEach((group, i) => { const newIdx = nextIdx + i; updates[newIdx] = { ...group, originalIndex: newIdx }; }); if (Object.keys(updates).length > 0) { await update(ref(db, 'collections/groups'), updates); importStatusEl.innerText = `ייבוא הושלם!`; importText.value = ""; importContainer.classList.remove("visible"); } else { importStatusEl.innerText = "לא נמצאו קבוצות לייבא."; } } catch (e) { console.error("Import error:", e); importStatusEl.innerText = "שגיאה בייבוא: " + e.message; } }
+      // --- Import/Export Logic ---
+      importBtn.onclick = () => {
+        if (!admin || edit) return;
+        importContainer.classList.toggle("visible");
+        importStatusEl.innerText = "";
+        importStatusEl.classList.remove("error"); // Clear error state
+        importText.value = "";
+        if (importContainer.classList.contains("visible") && edit) {
+          cancelEditOrAdd();
+        }
+      };
+
+      exportBtn.onclick = () => { // New export handler
+          if (!admin || edit || allGroups.length === 0) return;
+          exportGroups(allGroups);
+      };
+
+      submitImportBtn.onclick = () => {
+        if (!admin) return;
+        const text = importText.value.trim();
+        importStatusEl.classList.remove("error"); // Clear previous error state
+        if (!text) {
+          importStatusEl.innerText = "תיבת טקסט ריקה.";
+          return;
+        }
+        importStatusEl.innerText = "מעבד...";
+        const parsed = parseImportText(text);
+        if (parsed.error) {
+          importStatusEl.innerText = `שגיאת ניתוח: ${parsed.error}`;
+          importStatusEl.classList.add("error"); // Add error styling
+          return;
+        }
+        if (parsed.groups.length === 0) {
+          importStatusEl.innerText = "לא נמצאו קבוצות תקינות לייבוא.";
+          return;
+        }
+        importGroupsToFirebase(parsed.groups);
+      };
+
+      function parseImportText(text) {
+        const blocks = text.split(/\n\s*\n/); // Split by one or more empty lines
+        const newGroups = [];
+        let error = null;
+
+        blocks.forEach((block, blockIndex) => {
+          if (error) return; // Stop if error found
+          const lines = block.trim().split("\n").map((l) => l.trim());
+          const nonEmptyLines = lines.filter(l => l); // Filter out fully empty lines within a block
+
+          // Basic structure check: Need at least topic, difficulty, and one sentence
+          if (nonEmptyLines.length < 3) {
+             if (nonEmptyLines.length > 0) { // Only report error if the block wasn't just whitespace
+                error = `בלוק ${blockIndex + 1}: לא תקין. חייב להכיל לפחות נושא, רמת קושי ומשפט אחד.`;
+             }
+            return;
+          }
+
+          // Topic (Line 1)
+          const topicLine = nonEmptyLines[0];
+          const topic = TOPICS.includes(topicLine) ? topicLine : "כללי"; // Default to 'כללי' if not recognized
+
+          // Difficulty (Line 2) - **Validation Added**
+          const difficultyLine = nonEmptyLines[1];
+          const parsedDifficulty = parseInt(difficultyLine, 10);
+          let difficulty;
+          if (
+            isNaN(parsedDifficulty) ||
+            parsedDifficulty < 1 ||
+            parsedDifficulty > 5
+          ) {
+            error = `בלוק ${blockIndex + 1} ("${topicLine}"): רמת קושי (${difficultyLine}) חייבת להיות מספר בין 1 ל-5.`;
+            return;
+          } else {
+             difficulty = parsedDifficulty;
+          }
+
+          // Sentences (Lines 3+) - **Validation Added**
+          const sentences = nonEmptyLines
+            .slice(2)
+            .map((line) => {
+              const isLocked = line.startsWith("*");
+              const text = isLocked ? line.substring(1).trim() : line.trim(); // Trim whitespace
+              if (!text) return null; // Ignore lines that become empty after removing '*' or trimming
+              return { text: text, movable: !isLocked };
+            })
+            .filter((s) => s !== null); // Remove nulls (empty sentences)
+
+          if (sentences.length === 0) {
+            error = `בלוק ${blockIndex + 1} ("${topicLine}"): לא נמצאו משפטים תקינים.`;
+            return;
+          }
+
+          newGroups.push({
+            difficulty: difficulty,
+            topic: topic,
+            sentences: sentences,
+          });
+        });
+
+        return { groups: newGroups, error: error };
+      }
+
+      async function importGroupsToFirebase(parsedGroups) {
+        if (!admin) return;
+        importStatusEl.innerText = `מייבא ${parsedGroups.length}...`;
+        try {
+          const validIndices = allGroups
+            .map((g) => g.originalIndex)
+            .filter((idx) => typeof idx === "number" && !isNaN(idx));
+          const nextIdx =
+            validIndices.length > 0 ? Math.max(...validIndices) + 1 : 0;
+          if (isNaN(nextIdx)) {
+            throw new Error("Could not determine next index.");
+          }
+          const updates = {};
+          parsedGroups.forEach((group, i) => {
+            const newIdx = nextIdx + i;
+            // Ensure originalIndex is added for consistency, even though not strictly needed by Firebase update itself here
+            updates[newIdx] = { ...group, originalIndex: newIdx };
+          });
+          if (Object.keys(updates).length > 0) {
+            await update(ref(db, "collections/groups"), updates);
+            importStatusEl.innerText = `ייבוא הושלם! נוספו ${parsedGroups.length} קבוצות.`;
+            importStatusEl.classList.remove("error");
+            importText.value = "";
+            importContainer.classList.remove("visible");
+          } else {
+            importStatusEl.innerText = "לא נמצאו קבוצות לייבא.";
+             importStatusEl.classList.remove("error");
+          }
+        } catch (e) {
+          console.error("Import error:", e);
+          importStatusEl.innerText = "שגיאה בייבוא: " + e.message;
+          importStatusEl.classList.add("error");
+        }
+      }
+
+       // --- Export Function ---
+      function exportGroups(groupsToExport) {
+          if (!groupsToExport || groupsToExport.length === 0) {
+              statusEl.innerText = "אין קבוצות לייצא.";
+              return;
+          }
+
+          let exportText = "";
+          groupsToExport.forEach((group, index) => {
+              if (!group || !group.sentences || !Array.isArray(group.sentences)) {
+                  console.warn("Skipping invalid group during export:", group);
+                  return;
+              }
+              exportText += group.topic || "כללי"; // Use 'כללי' if topic is missing
+              exportText += "\n";
+              exportText += group.difficulty || 1; // Use 1 if difficulty is missing
+              exportText += "\n";
+              group.sentences.forEach(sentence => {
+                   if (sentence && sentence.text) {
+                      exportText += (sentence.movable === false ? "*" : "") + sentence.text;
+                      exportText += "\n";
+                   }
+              });
+              // Add empty line between groups, but not after the last one
+              if (index < groupsToExport.length - 1) {
+                  exportText += "\n";
+              }
+          });
+
+          // Create a blob and trigger download
+          const blob = new Blob([exportText], { type: 'text/plain;charset=utf-8' });
+          const link = document.createElement("a");
+          const url = URL.createObjectURL(blob);
+          link.setAttribute("href", url);
+          link.setAttribute("download", "exported_question_groups.txt");
+          link.style.visibility = 'hidden';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url); // Clean up
+          statusEl.innerText = "הקבוצות יוצאו לקובץ.";
+           // Optionally hide status message after a delay
+           setTimeout(() => { if (statusEl.innerText === "הקבוצות יוצאו לקובץ.") updateStatusMessage(); }, 3000);
+      }
+
 
       // --- Rendering Logic ---
-      const rowHTML = (text, locked) => ` <div class="sentence-row flex items-center space-x-2 space-x-reverse mb-2"><input type="text" value="${text || ''}" class="sentence-input flex-1 p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" placeholder="הזן משפט כאן" /><label class="inline-flex items-center space-x-1 space-x-reverse" title="נעל משפט"><input type="checkbox" ${locked ? "checked" : ""} class="lock-checkbox h-5 w-5 accent-blue-500" /><span>🔒</span></label><button type="button" class="removeSentence text-red-500 hover:text-red-700 font-bold text-lg" title="מחק משפט">✖️</button></div>`;
-      function view(g) { if (!g || typeof g.originalIndex !== 'number') return '<p>שגיאה בנתונים.</p>'; const topic = g.topic || 'כללי'; const diff = g.difficulty || '?'; const title = `${topic} - רמה ${diff}`; const editBtn = admin ? `<button data-original-idx="${g.originalIndex}" id="editBtn" class="absolute top-2 left-2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 text-xl" title="ערוך">✏️</button>` : ''; return `<div class="border rounded-2xl shadow-lg p-4 bg-gray-50 dark:bg-gray-800 relative">${editBtn}<h2 class="text-2xl font-semibold mb-4">${title}</h2><h3 class="text-lg font-semibold mb-2">משפטים:</h3><ol class="list-decimal list-outside mr-5 space-y-1"> ${ (g.sentences && Array.isArray(g.sentences)) ? g.sentences.map(s => `<li>${s.text || '(ריק)'}${!s.movable ? ' <span class="text-sm text-green-600 dark:text-green-400" title="נעול">🔒</span>' : ''}</li>`).join('') : '<li>אין משפטים.</li>' }</ol></div>`; }
-      function editForm(g) { const data = isAddingNewGroup ? newGroupDataBuffer : g; if (!data) { return '<p class="text-red-500">שגיאה בהצגת טופס.</p>'; } const rows = (data.sentences || []).map(s => rowHTML(s.text || '', !s.movable)).join(""); const topic = data.topic || "כללי"; const title = isAddingNewGroup ? "הוספת קבוצה חדשה" : `עריכת קבוצה`; return `<div class="border rounded-2xl shadow-lg p-4 bg-gray-50 dark:bg-gray-800"><h2 class="text-2xl font-semibold mb-2">${title}</h2><form id="editForm" class="space-y-3"><div class="flex flex-wrap gap-4 items-center mb-4"><label class="block">רמת קושי: <input id="diffInput" type="number" value="${data.difficulty || 1}" min="1" max="5" class="p-1 border rounded bg-white dark:bg-gray-700 w-16 text-gray-900 dark:text-gray-100" /></label><label class="block">נושא: <select id="topicInput" class="p-1 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">${TOPICS.map(t => `<option value="${t}" ${t === topic ? "selected" : ""}>${t}</option>`).join("")}</select></label></div><div id="sentences-container"><h3 class="text-lg font-semibold mb-2">משפטים:</h3>${rows}</div><button type="button" id="addSentence" class="mt-2 px-3 py-1 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 rounded text-gray-900 dark:text-gray-100">➕ הוסף משפט</button><div class="flex justify-between mt-4"><button type="button" id="cancelBtn" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">ביטול</button><button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">שמור וסגור</button></div></form></div>`; }
-      function render() { container.innerHTML = ''; if (edit) { if (isAddingNewGroup) { container.innerHTML = editForm(null); } else { const groupToEdit = allGroups.find(g => g.originalIndex === originalIdx); if (groupToEdit) { container.innerHTML = editForm(groupToEdit); } else { console.error(`Render error: Group ${originalIdx} not found.`); statusEl.innerText = 'שגיאה: קבוצה לעריכה לא נמצאה.'; cancelEditOrAdd(); } } } else { if (filteredGroups.length > 0 && filteredIdx < filteredGroups.length) { const groupToView = filteredGroups[filteredIdx]; if (groupToView && typeof groupToView.originalIndex === 'number') { container.innerHTML = view(groupToView); } else { console.error("Render view error: Invalid group data", filteredIdx, groupToView); container.innerHTML = '<p class="text-red-500">שגיאה בהצגה.</p>'; } } else { const hasFilters = currentSearchTerm || currentTopicFilter !== 'all' || currentDifficultyFilter !== 'all'; container.innerHTML = allGroups.length === 0 ? (admin ? '<p>אין קבוצות. הוסף או ייבא.</p>' : '<p>אין קבוצות להצגה.</p>') : (hasFilters ? '<p>לא נמצאו קבוצות בסינון זה.</p>' : '<p>טוען...</p>'); } } }
+      const rowHTML = (text, locked) =>
+        ` <div class="sentence-row flex items-center space-x-2 space-x-reverse mb-2"><input type="text" value="${
+          text || ""
+        }" class="sentence-input flex-1 p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" placeholder="הזן משפט כאן" /><label class="inline-flex items-center space-x-1 space-x-reverse" title="נעל משפט"><input type="checkbox" ${
+          locked ? "checked" : ""
+        } class="lock-checkbox h-5 w-5 accent-blue-500" /><span>🔒</span></label><button type="button" class="removeSentence text-red-500 hover:text-red-700 font-bold text-lg" title="מחק משפט">✖️</button></div>`;
+
+      function view(g) {
+        if (!g || typeof g.originalIndex !== "number")
+          return '<p class="text-red-500 dark:text-red-400">שגיאה בנתונים.</p>';
+        const topic = g.topic || "כללי";
+        const diff = g.difficulty || "?";
+        const title = `${topic} - רמה ${diff}`;
+        const editBtn = admin
+          ? `<button data-original-idx="${g.originalIndex}" id="editBtn" class="absolute top-2 left-2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 text-xl" title="ערוך">✏️</button>`
+          : "";
+        return `<div class="border rounded-2xl shadow-lg p-4 bg-gray-50 dark:bg-gray-800 relative">${editBtn}<h2 class="text-2xl font-semibold mb-4">${title}</h2><h3 class="text-lg font-semibold mb-2">משפטים:</h3><ol class="list-decimal list-outside mr-5 space-y-1"> ${
+          g.sentences && Array.isArray(g.sentences) && g.sentences.length > 0
+            ? g.sentences
+                .map(
+                  (s) =>
+                    `<li>${s.text || "(ריק)"}${
+                      !s.movable
+                        ? ' <span class="text-sm text-green-600 dark:text-green-400" title="נעול">🔒</span>'
+                        : ""
+                    }</li>`
+                )
+                .join("")
+            : "<li>אין משפטים.</li>"
+        }</ol></div>`;
+      }
+
+      function editForm(g) {
+        const data = isAddingNewGroup ? newGroupDataBuffer : g;
+        if (!data) {
+          return '<p class="text-red-500 dark:text-red-400">שגיאה בהצגת טופס.</p>';
+        }
+        const rows = (data.sentences || [])
+          .map((s) => rowHTML(s.text || "", !s.movable))
+          .join("");
+        const topic = data.topic || "כללי";
+        const title = isAddingNewGroup ? "הוספת קבוצה חדשה" : `עריכת קבוצה`;
+        return `<div class="border rounded-2xl shadow-lg p-4 bg-gray-50 dark:bg-gray-800"><h2 class="text-2xl font-semibold mb-2">${title}</h2><form id="editForm" class="space-y-3"><div class="flex flex-wrap gap-4 items-center mb-4"><label class="block">רמת קושי: <input id="diffInput" type="number" value="${
+          data.difficulty || 1
+        }" min="1" max="5" class="p-1 border rounded bg-white dark:bg-gray-700 w-16 text-gray-900 dark:text-gray-100" /></label><label class="block">נושא: <select id="topicInput" class="p-1 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">${TOPICS.map(
+          (t) => `<option value="${t}" ${t === topic ? "selected" : ""}>${t}</option>`
+        ).join(
+          ""
+        )}</select></label></div><div id="sentences-container"><h3 class="text-lg font-semibold mb-2">משפטים:</h3>${rows}</div><button type="button" id="addSentence" class="mt-2 px-3 py-1 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 rounded text-gray-900 dark:text-gray-100">➕ הוסף משפט</button><div class="flex justify-between mt-4"><button type="button" id="cancelBtn" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">ביטול</button><button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">שמור וסגור</button></div></form></div>`;
+      }
+
+      function render() {
+        container.innerHTML = "";
+        if (edit) {
+          if (isAddingNewGroup) {
+            container.innerHTML = editForm(null);
+          } else {
+            const groupToEdit = allGroups.find(
+              (g) => g.originalIndex === originalIdx
+            );
+            if (groupToEdit) {
+              container.innerHTML = editForm(groupToEdit);
+            } else {
+              console.error(
+                `Render error: Group ${originalIdx} not found.`
+              );
+              statusEl.innerText = "שגיאה: קבוצה לעריכה לא נמצאה.";
+              cancelEditOrAdd();
+            }
+          }
+        } else {
+          if (
+            filteredGroups.length > 0 &&
+            filteredIdx < filteredGroups.length
+          ) {
+            const groupToView = filteredGroups[filteredIdx];
+            if (groupToView && typeof groupToView.originalIndex === "number") {
+              container.innerHTML = view(groupToView);
+            } else {
+              console.error(
+                "Render view error: Invalid group data",
+                filteredIdx,
+                groupToView
+              );
+              container.innerHTML =
+                '<p class="text-red-500 dark:text-red-400">שגיאה בהצגה.</p>';
+            }
+          } else {
+            const hasFilters =
+              currentSearchTerm ||
+              currentTopicFilter !== "all" ||
+              currentDifficultyFilter !== "all";
+            container.innerHTML =
+              allGroups.length === 0
+                ? admin
+                  ? '<p class="text-gray-500 dark:text-gray-400">אין קבוצות. הוסף או ייבא.</p>'
+                  : '<p class="text-gray-500 dark:text-gray-400">אין קבוצות להצגה.</p>'
+                : hasFilters
+                ? '<p class="text-gray-500 dark:text-gray-400">לא נמצאו קבוצות בסינון זה.</p>'
+                : '<p class="text-gray-500 dark:text-gray-400">טוען...</p>';
+          }
+        }
+      }
 
       // --- Navigation ---
-      function updateNav() { const totalFiltered = filteredGroups.length; const displayTotal = totalFiltered; const displayIdx = filteredIdx; const disableNav = edit || totalFiltered === 0; const disableFilters = edit; prevBtn.disabled = disableNav || displayIdx <= 0; nextBtn.disabled = disableNav || displayIdx >= displayTotal - 1; groupInp.disabled = disableNav; searchInput.disabled = disableFilters; topicFilter.disabled = disableFilters; difficultyFilter.disabled = disableFilters; clearFiltersBtn.disabled = disableFilters; groupInp.value = totalFiltered === 0 ? 0 : displayIdx + 1; groupInp.max = displayTotal > 0 ? displayTotal : 1; groupInp.min = totalFiltered > 0 ? 1 : 0; groupCountEl.innerText = `/ ${displayTotal}`; delBtn.disabled = !admin || edit || totalFiltered === 0; newBtn.disabled = !admin || edit; importBtn.disabled = !admin || edit; }
-      prevBtn.onclick = () => { if (!edit && filteredIdx > 0) { filteredIdx--; render(); updateNav(); updateStatusMessage(); } };
-      nextBtn.onclick = () => { if (!edit && filteredIdx < filteredGroups.length - 1) { filteredIdx++; render(); updateNav(); updateStatusMessage(); } };
-      groupInp.onchange = (e) => { if (edit) return; const v = +e.target.value - 1; if (v >= 0 && v < filteredGroups.length) { filteredIdx = v; render(); updateNav(); updateStatusMessage();} else { e.target.value = filteredGroups.length > 0 ? filteredIdx + 1 : 0; } };
+      function updateNav() {
+        const totalFiltered = filteredGroups.length;
+        const displayTotal = totalFiltered;
+        const displayIdx = filteredIdx;
+        const disableNav = edit || totalFiltered === 0;
+        const disableFilters = edit;
+        const disableAdminActions = !admin || edit; // Consolidated admin action disable logic
+
+        prevBtn.disabled = disableNav || displayIdx <= 0;
+        nextBtn.disabled = disableNav || displayIdx >= displayTotal - 1;
+        groupInp.disabled = disableNav;
+        searchInput.disabled = disableFilters;
+        topicFilter.disabled = disableFilters;
+        difficultyFilter.disabled = disableFilters;
+        clearFiltersBtn.disabled = disableFilters;
+
+        groupInp.value = totalFiltered === 0 ? 0 : displayIdx + 1;
+        groupInp.max = displayTotal > 0 ? displayTotal : 1;
+        groupInp.min = totalFiltered > 0 ? 1 : 0;
+        groupCountEl.innerText = `/ ${displayTotal}`;
+
+        // Admin buttons
+        delBtn.disabled = disableAdminActions || totalFiltered === 0; // Also disable if no groups to delete
+        newBtn.disabled = disableAdminActions;
+        importBtn.disabled = disableAdminActions;
+        exportBtn.disabled = disableAdminActions || allGroups.length === 0; // Disable export if no groups exist at all
+      }
+      prevBtn.onclick = () => {
+        if (!edit && filteredIdx > 0) {
+          filteredIdx--;
+          render();
+          updateNav();
+          updateStatusMessage();
+        }
+      };
+      nextBtn.onclick = () => {
+        if (!edit && filteredIdx < filteredGroups.length - 1) {
+          filteredIdx++;
+          render();
+          updateNav();
+          updateStatusMessage();
+        }
+      };
+      groupInp.onchange = (e) => {
+        if (edit) return;
+        const v = +e.target.value - 1;
+        if (v >= 0 && v < filteredGroups.length) {
+          filteredIdx = v;
+          render();
+          updateNav();
+          updateStatusMessage();
+        } else {
+          e.target.value = filteredGroups.length > 0 ? filteredIdx + 1 : 0;
+        }
+      };
 
       // --- Edit Form Event Listeners ---
-       function cancelEditOrAdd() { const wasAdding = isAddingNewGroup; edit = false; isAddingNewGroup = false; newGroupDataBuffer = null; originalIdx = -1; focusOnOriginalIndexAfterUpdate = -1; statusEl.innerText = wasAdding ? "הוספה בוטלה" : "עריכה בוטלה"; render(); updateNav(); updateStatusMessage(); }
+      function cancelEditOrAdd() {
+        const wasAdding = isAddingNewGroup;
+        edit = false;
+        isAddingNewGroup = false;
+        newGroupDataBuffer = null;
+        originalIdx = -1;
+        focusOnOriginalIndexAfterUpdate = -1;
+        statusEl.innerText = wasAdding ? "הוספה בוטלה" : "עריכה בוטלה";
+        render();
+        updateNav();
+        updateStatusMessage();
+         // Hide status message after a delay
+        setTimeout(() => { if (statusEl.innerText === "הוספה בוטלה" || statusEl.innerText === "עריכה בוטלה") updateStatusMessage(); }, 3000);
+
+      }
       container.addEventListener("click", (e) => {
-        if (e.target.id === "editBtn") { if (!admin || edit) return; const idxStr = e.target.getAttribute('data-original-idx'); const idx = parseInt(idxStr, 10); if (isNaN(idx)) { statusEl.innerText = "שגיאה באינדקס."; return; } const exists = allGroups.some(g => g.originalIndex === idx); if (exists) { originalIdx = idx; edit = true; isAddingNewGroup = false; render(); updateNav(); updateStatusMessage(); } else { statusEl.innerText = "שגיאה: לא ניתן למצוא קבוצה."; } return; }
-        if (e.target.id === "cancelBtn") { cancelEditOrAdd(); return; }
-        if (e.target.id === "addSentence") { const c = document.getElementById("sentences-container"); if (c) { const div = document.createElement("div"); div.innerHTML = rowHTML("", false); const row = div.firstElementChild; if (row) { c.appendChild(row); row.querySelector('input[type="text"]')?.focus(); } } return; }
-        if (e.target.classList.contains("removeSentence")) { const row = e.target.closest(".sentence-row"); const c = row?.closest("#sentences-container"); if (row && c) { if (c.querySelectorAll(".sentence-row").length <= 1) { statusEl.innerText = "חובה להשאיר משפט אחד."; row.animate([{ backgroundColor: "rgba(255,100,100,0.3)" }, { backgroundColor: "transparent" }], { duration: 600 }); return; } row.remove(); } return; }
+        // Edit Button Click
+        if (e.target.id === "editBtn") {
+          if (!admin || edit) return;
+          const idxStr = e.target.getAttribute("data-original-idx");
+          const idx = parseInt(idxStr, 10);
+          if (isNaN(idx)) {
+            statusEl.innerText = "שגיאה באינדקס.";
+            return;
+          }
+          const exists = allGroups.some((g) => g.originalIndex === idx);
+          if (exists) {
+            originalIdx = idx;
+            edit = true;
+            isAddingNewGroup = false;
+            render();
+            updateNav();
+            updateStatusMessage();
+          } else {
+            statusEl.innerText = "שגיאה: לא ניתן למצוא קבוצה.";
+          }
+          return;
+        }
+        // Cancel Button Click
+        if (e.target.id === "cancelBtn") {
+          cancelEditOrAdd();
+          return;
+        }
+        // Add Sentence Button Click
+        if (e.target.id === "addSentence") {
+          const c = document.getElementById("sentences-container");
+          if (c) {
+            const div = document.createElement("div");
+            div.innerHTML = rowHTML("", false); // Add an empty, unlocked sentence row
+            const row = div.firstElementChild;
+            if (row) {
+              c.appendChild(row);
+              row.querySelector('input[type="text"]')?.focus(); // Focus the new input
+            }
+          }
+          return;
+        }
+        // Remove Sentence Button Click
+        if (e.target.classList.contains("removeSentence")) {
+          const row = e.target.closest(".sentence-row");
+          const c = row?.closest("#sentences-container");
+          if (row && c) {
+            if (c.querySelectorAll(".sentence-row").length <= 1) {
+              // Prevent removing the last sentence
+              statusEl.innerText = "חובה להשאיר משפט אחד.";
+              row.animate(
+                [
+                  { backgroundColor: "rgba(255,100,100,0.3)" },
+                  { backgroundColor: "transparent" },
+                ],
+                { duration: 600 }
+              );
+               setTimeout(() => { if (statusEl.innerText === "חובה להשאיר משפט אחד.") updateStatusMessage(); }, 3000);
+              return;
+            }
+            row.remove();
+          }
+          return;
+        }
       });
 
       // --- Edit Form Submit Handler ---
       container.addEventListener("submit", (e) => {
-        e.preventDefault(); if (!admin || !edit) return; const form = e.target; if (form.id !== "editForm") return;
-        statusEl.innerText = "שומר...";
-        const diffInput = document.getElementById("diffInput"); const topicInput = document.getElementById("topicInput");
-        const difficulty = diffInput ? parseInt(diffInput.value) || 1 : 1; const topic = topicInput ? topicInput.value : "כללי";
-        const rows = [...form.querySelectorAll(".sentence-row")]; let errorOccurred = false;
-        const sentences = rows.map((row) => { const textInput = row.querySelector(".sentence-input"); const lockCheckbox = row.querySelector(".lock-checkbox"); if (!textInput || !lockCheckbox) { if (!errorOccurred) { statusEl.innerText = "שגיאה במבנה השורה."; errorOccurred = true; } return null; } const textValue = textInput.value.trim(); if (!textValue) { return null; } return { text: textValue, movable: !lockCheckbox.checked }; }).filter(s => s !== null);
-        if (errorOccurred) return; if (sentences.length === 0) { statusEl.innerText = "חובה להזין לפחות משפט אחד."; return; }
+        e.preventDefault();
+        if (!admin || !edit) return;
+        const form = e.target;
+        if (form.id !== "editForm") return;
 
-        const finalGroupData = { difficulty, topic, sentences }; const wasAdding = isAddingNewGroup;
-        let savePromise; let savePath; let indexToSaveAt;
+        statusEl.innerText = "שומר...";
+
+        const diffInput = document.getElementById("diffInput");
+        const topicInput = document.getElementById("topicInput");
+
+        const difficulty = diffInput ? parseInt(diffInput.value) || 1 : 1;
+        const topic = topicInput ? topicInput.value : "כללי";
+
+        const rows = [...form.querySelectorAll(".sentence-row")];
+        let errorOccurred = false;
+        const sentences = rows
+          .map((row) => {
+            const textInput = row.querySelector(".sentence-input");
+            const lockCheckbox = row.querySelector(".lock-checkbox");
+            if (!textInput || !lockCheckbox) {
+              if (!errorOccurred) {
+                statusEl.innerText = "שגיאה במבנה השורה.";
+                errorOccurred = true;
+              }
+              return null;
+            }
+            const textValue = textInput.value.trim();
+            if (!textValue) {
+              return null; // Ignore empty sentences
+            }
+            return { text: textValue, movable: !lockCheckbox.checked };
+          })
+          .filter((s) => s !== null); // Filter out the nulls
+
+        if (errorOccurred) return; // Stop if structure error found
+
+        if (sentences.length === 0) {
+          statusEl.innerText = "חובה להזין לפחות משפט אחד.";
+           setTimeout(() => { if (statusEl.innerText === "חובה להזין לפחות משפט אחד.") updateStatusMessage(); }, 3000);
+          return;
+        }
+
+        const finalGroupData = { difficulty, topic, sentences };
+        const wasAdding = isAddingNewGroup;
+        let savePromise;
+        let savePath;
+        let indexToSaveAt;
 
         try {
-            if (wasAdding) {
-                const validIndices = allGroups.map(g => g.originalIndex).filter(idx => typeof idx === 'number' && !isNaN(idx)); indexToSaveAt = validIndices.length > 0 ? Math.max(...validIndices) + 1 : 0;
-                if (isNaN(indexToSaveAt)) { throw new Error("Failed to calculate next index."); }
-                savePath = ref(db, `collections/groups/${indexToSaveAt}`); finalGroupData.originalIndex = indexToSaveAt;
-                savePromise = set(savePath, finalGroupData);
-            } else { // Updating
-                if (typeof originalIdx !== 'number' || isNaN(originalIdx) || originalIdx < 0) { throw new Error(`Invalid original index for update: ${originalIdx}`); }
-                indexToSaveAt = originalIdx; savePath = ref(db, `collections/groups/${indexToSaveAt}`);
-                finalGroupData.originalIndex = indexToSaveAt;
-                savePromise = update(savePath, finalGroupData); // Use update
+          if (wasAdding) {
+            // Find the next available index
+            const validIndices = allGroups
+              .map((g) => g.originalIndex)
+              .filter((idx) => typeof idx === "number" && !isNaN(idx));
+            indexToSaveAt =
+              validIndices.length > 0 ? Math.max(...validIndices) + 1 : 0;
+            if (isNaN(indexToSaveAt)) {
+              throw new Error("Failed to calculate next index.");
             }
-            console.log(`Attempting to save to index: ${indexToSaveAt}`);
+            savePath = ref(db, `collections/groups/${indexToSaveAt}`);
+            finalGroupData.originalIndex = indexToSaveAt; // Add originalIndex
+            savePromise = set(savePath, finalGroupData);
+          } else {
+            // Updating existing group
+            if (
+              typeof originalIdx !== "number" ||
+              isNaN(originalIdx) ||
+              originalIdx < 0
+            ) {
+              throw new Error(
+                `Invalid original index for update: ${originalIdx}`
+              );
+            }
+            indexToSaveAt = originalIdx;
+            savePath = ref(db, `collections/groups/${indexToSaveAt}`);
+            finalGroupData.originalIndex = indexToSaveAt; // Ensure originalIndex is present
+            savePromise = update(savePath, finalGroupData); // Use update for existing
+          }
+          console.log(`Attempting to save to index: ${indexToSaveAt}`);
 
-            savePromise
-              .then(() => {
-                statusEl.innerText = wasAdding ? "קבוצה חדשה נשמרה" : "נשמר";
-                const savedOriginalIndex = indexToSaveAt;
-                if (!wasAdding) { // Set focus flag only when updating
-                    focusOnOriginalIndexAfterUpdate = savedOriginalIndex;
-                    console.log(`Set focus flag for original index: ${focusOnOriginalIndexAfterUpdate}`);
-                }
-                cancelEditOrAdd(); // Exit edit mode *after* potentially setting flag
-              })
-              .catch((e) => { console.error("Save promise error:", e); statusEl.innerText = "שגיאה בשמירה: " + e.message; });
+          savePromise
+            .then(() => {
+              statusEl.innerText = wasAdding ? "קבוצה חדשה נשמרה" : "נשמר";
+              const savedOriginalIndex = indexToSaveAt;
+              if (!wasAdding) {
+                // Set focus flag only when updating, so listener restores view
+                focusOnOriginalIndexAfterUpdate = savedOriginalIndex;
+              }
+               // Clear edit state *after* save & potentially setting flag
+              cancelEditOrAdd();
+              // Make sure the status message reverts after a bit
+              setTimeout(() => { if (statusEl.innerText === "קבוצה חדשה נשמרה" || statusEl.innerText === "נשמר") updateStatusMessage(); }, 3000);
 
+            })
+            .catch((e) => {
+              console.error("Save promise error:", e);
+              statusEl.innerText = "שגיאה בשמירה: " + e.message;
+            });
         } catch (error) {
-             console.error("Error preparing save:", error); statusEl.innerText = "שגיאה בהכנה לשמירה: " + error.message;
+          console.error("Error preparing save:", error);
+          statusEl.innerText = "שגיאה בהכנה לשמירה: " + error.message;
         }
       }); // End of Submit Handler
     </script>
