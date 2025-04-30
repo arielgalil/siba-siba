@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>פאנל ניהול (Pico + React)</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"/>
+    <style>
+        body { padding: 1rem; }
+        [aria-busy="true"] { /* ... סגנון טעינה ... */ display: inline-block; width: 1.5rem; height: 1.5rem; border: 0.2rem solid var(--pico-primary); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-container { text-align: center; padding: 2rem; }
+        details > summary { margin-bottom: 0.5rem; }
+        details[open] > summary { margin-bottom: 1rem; }
+        .filter-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1rem; align-items: end; }
+        .group-actions { display: flex; gap: 1rem; margin-bottom: 1rem; }
+        .pagination-controls { display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 1rem; }
+        .group-display-area article { margin-bottom: 1rem; }
+        #importContainer { transition: opacity 0.3s ease-out, max-height 0.3s ease-out, visibility 0.3s; max-height: 0; opacity: 0; overflow: hidden; visibility: hidden; margin-bottom: 1rem; border: 1px solid var(--pico-form-element-border-color); border-radius: var(--pico-border-radius); padding: 0 1rem; }
+        #importContainer.visible { max-height: 500px; opacity: 1; visibility: visible; padding: 1rem; }
+    </style>
+</head>
+<body>
+    <div id="root" class="container"></div>
+
+    {/* CDNs for React, ReactDOM, HTM */}
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/htm@3/dist/htm.umd.js"></script>
+
+    {/* Firebase v10 Modular SDK CDNs */}
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+        import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js"; // הוספנו get
+
+        const html = htm.bind(React.createElement);
+
+        // הגדרות Firebase שלך
+        const firebaseConfig = {
+            apiKey: "AIzaSyAGFC_TB8iEMvS2PyxeASj1HH4i66AW4UA",
+            authDomain: "trivbio.firebaseapp.com",
+            databaseURL: "https://trivbio-default-rtdb.firebaseio.com",
+            projectId: "trivbio",
+            storageBucket: "trivbio.appspot.com",
+            messagingSenderId: "1097087574583",
+            appId: "1:1097087574583:web:b36c0441537a1f596215b2",
+            measurementId: "G-ZY245YB23E"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        const googleProvider = new GoogleAuthProvider();
+
+        // --- Main App Component ---
+        function App() {
+            const [user, setUser] = React.useState(null);
+            const [isAdmin, setIsAdmin] = React.useState(false);
+            const [loading, setLoading] = React.useState(true);
+            const [authError, setAuthError] = React.useState(null);
+            const [theme, setTheme] = React.useState(document.documentElement.getAttribute('data-theme') || 'light');
+
+            React.useEffect(() => { document.documentElement.setAttribute('data-theme', theme); }, [theme]);
+
+            async function checkAdminStatus(uid) { /* ... לוגיקת בדיקת מנהל ... */
+                try {
+                   const adminRef = ref(db, `admins/${uid}`);
+                   const snapshot = await get(adminRef);
+                   return snapshot.exists() && snapshot.val() === true;
+                } catch (err) { console.error("Admin check error:", err); setAuthError("שגיאה בבדיקת הרשאות."); return false; }
+            }
+
+            React.useEffect(() => { /* ... מאזין Auth ... */
+                 setPersistence(auth, browserLocalPersistence).then(() => {
+                    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+                        setAuthError(null);
+                        if (firebaseUser) {
+                            setUser(firebaseUser); setLoading(true);
+                            const adminStatus = await checkAdminStatus(firebaseUser.uid);
+                            setIsAdmin(adminStatus); setLoading(false);
+                        } else { setUser(null); setIsAdmin(false); setLoading(false); }
+                    });
+                    return () => unsubscribe();
+                  }).catch((error) => { console.error("Persistence error:", error); setAuthError("שגיאה בהגדרת שמירת התחברות."); setLoading(false); });
+            }, []);
+
+            const handleLogin = async () => { /* ... לוגיקת התחברות ... */
+                setLoading(true); setAuthError(null);
+                try { await signInWithPopup(auth, googleProvider); }
+                catch (err) { console.error("Login Error:", err); setAuthError(`שגיאה: ${err.message}`); setLoading(false); }
+            };
+            const handleLogout = async () => { /* ... לוגיקת התנתקות ... */
+                try { await signOut(auth); } catch (err) { console.error("Logout Error:", err); setAuthError(`שגיאה: ${err.message}`); }
+            };
+            const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
+
+            // *** תיקון: שימוש ב-className במקום class במידת הצורך ***
+            return html`
+                <${React.Fragment}>
+                     <header className="container"> {/* OK as it's outside script */}
+                         <nav>
+                            <ul><li><h1 style=${{margin: 0}}>פאנל ניהול</h1></li></ul>
+                            <ul>
+                                {user && html`<li className="text-sm">שלום, ${user.displayName || user.email}</li>`}
+                                <li><button onClick=${toggleTheme} className="secondary outline" style=${{padding: '0.25rem 0.5rem'}} title="שנה ערכת נושא">${theme === 'light' ? '🌙' : '☀️'}</button></li>
+                                {user && html`<li><button onClick=${handleLogout} className="contrast outline">התנתק</button></li>`}
+                                {!user && !loading && html`<li><button onClick=${handleLogin}>התחבר עם Google</button></li>`}
+                            </ul>
+                        </nav>
+                         {authError && html`<p style=${{color: 'var(--pico-form-element-invalid-active-border-color)'}}><small>${authError}</small></p>`}
+                    </header>
+                    <main className="container"> {/* OK as it's outside script */}
+                         ${loading && html`<div className="loading-container"><div aria-busy="true"></div><p>טוען...</p></div>`}
+                        ${!loading && !user && html` <article> <hgroup> <h2>אנא התחבר</h2> <h3>עליך להתחבר עם חשבון גוגל כדי לגשת לפאנל הניהול.</h3> </hgroup> <button onClick=${handleLogin}>התחבר עם Google</button> </article> `}
+                        ${!loading && user && !isAdmin && html` <article> <hgroup> <h2>אין גישה</h2> <h3>משתמש זה (${user.email}) אינו מוגדר כמנהל מערכת.</h3> </hgroup> </article> `}
+                        ${!loading && user && isAdmin && html`<${AdminSections} db=${db} />`}
+                    </main>
+                </>
+            `;
+        }
+
+
+        // --- רכיב ראשי של פאנל הניהול ---
+        function AdminSections({ db }) {
+             const [allGroups, setAllGroups] = React.useState([]);
+             const [filteredGroups, setFilteredGroups] = React.useState([]);
+             const [searchTerm, setSearchTerm] = React.useState('');
+             const [topicFilter, setTopicFilter] = React.useState('all');
+             const [difficultyFilter, setDifficultyFilter] = React.useState('all');
+             const [currentPage, setCurrentPage] = React.useState(1);
+             const [isLoadingData, setIsLoadingData] = React.useState(true);
+             const [importVisible, setImportVisible] = React.useState(false);
+             const [importText, setImportText] = React.useState('');
+             const [importStatus, setImportStatus] = React.useState('');
+
+             const ITEMS_PER_PAGE = 3;
+             const TOPICS = ["כללי", "התא", "גוף האדם", "אקולוגיה", "מעבדה"];
+
+             React.useEffect(() => { /* ... שליפת נתונים ... */
+                setIsLoadingData(true);
+                const groupsRef = ref(db, "collections/groups");
+                const unsubscribe = onValue(groupsRef, (snap) => {
+                    const groupsData = snap.val(); let processedGroups = [];
+                    if (groupsData) { /* ... לוגיקת עיבוד נתונים ... */
+                        if (Array.isArray(groupsData)) { processedGroups = groupsData.map((group, index) => group && typeof index === 'number' && !isNaN(index) ? { ...group, originalIndex: index } : null).filter(group => group !== null); }
+                        else if (typeof groupsData === 'object') { processedGroups = Object.entries(groupsData).map(([key, group]) => { const index = parseInt(key, 10); return (group && !isNaN(index)) ? { ...group, originalIndex: index } : null; }).filter(group => group !== null).sort((a, b) => a.originalIndex - b.originalIndex); }
+                    }
+                    setAllGroups(processedGroups);
+                    setIsLoadingData(false);
+                }, (error) => { console.error(error); setAllGroups([]); setIsLoadingData(false); });
+                return () => unsubscribe();
+             }, [db]);
+
+             React.useEffect(() => { /* ... סינון נתונים ... */
+                 let tempFiltered = allGroups.filter(group => {
+                     if (!group) return false;
+                     const diffMatch = difficultyFilter === 'all' || String(group.difficulty) === difficultyFilter;
+                     const topicMatch = topicFilter === 'all' || (group.topic || 'כללי') === topicFilter;
+                     const searchSanitized = searchTerm.toLowerCase();
+                     const searchMatch = searchSanitized === '' ||
+                                         ((group.topic || '').toLowerCase().includes(searchSanitized)) ||
+                                         (group.sentences || []).some(s => s && s.text && String(s.text).toLowerCase().includes(searchSanitized));
+                     return diffMatch && topicMatch && searchMatch;
+                 });
+                 setFilteredGroups(tempFiltered);
+                 setCurrentPage(1);
+             }, [allGroups, searchTerm, topicFilter, difficultyFilter]);
+
+             const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+             const endIndex = startIndex + ITEMS_PER_PAGE;
+             const groupsToDisplay = filteredGroups.slice(startIndex, endIndex);
+             const totalPages = Math.ceil(filteredGroups.length / ITEMS_PER_PAGE);
+
+             const goToPrevPage = () => setCurrentPage(prev => Math.max(1, prev - 1));
+             const goToNextPage = () => setCurrentPage(prev => Math.min(totalPages, prev + 1));
+             const handleToggleImport = () => setImportVisible(prev => !prev);
+
+             // *** תיקון: שימוש ב-className במקום class ***
+             return html`
+                 <div>
+                    {/* --- מקטעים סגורים --- */}
+                    <details>
+                        <summary>📊 סטטיסטיקה יומית</summary>
+                        <p>תוכן סטטיסטיקה יומית יופיע כאן...</p>
+                    </details>
+                    <details>
+                        <summary>🏆 לוח דירוג</summary>
+                        <p>תוכן לוח דירוג יופיע כאן...</p>
+                    </details>
+                    <details>
+                        <summary>👥 ניהול משתמשים</summary>
+                        <p>תוכן ניהול משתמשים יופיע כאן...</p>
+                    </details>
+
+                    {/* --- מקטע פתוח: ניהול קבוצות משפטים --- */}
+                    <details open>
+                         <summary>📝 ניהול קבוצות משפטים</summary>
+                         <article>
+                            {/* כפתורי פעולה */}
+                            <div className="group-actions"> {/* <-- className */}
+                                <button>➕ הוסף קבוצה</button>
+                                <button className="secondary outline" onClick=${handleToggleImport}>📜 ייבא קבוצות</button> {/* <-- className */}
+                            </div>
+
+                             {/* אזור הייבוא */}
+                            <div id="importContainer" className="${importVisible ? 'visible' : ''}"> {/* <-- className */}
+                               <hgroup>
+                                   <h4>ייבוא קבוצות מטקסט</h4>
+                                   <h6>מבנה: שורת נושא, שורת רמת קושי (1-5), שורות משפטים ('*' לנעול), שורה ריקה בין קבוצות.</h6>
+                               </hgroup>
+                                <textarea
+                                   id="importText" value=${importText} onChange=${e => setImportText(e.target.value)} rows="5"
+                                   placeholder="נושא הקבוצה הראשונה&#10;3&#10;משפט א&#10;*משפט ב (נעול)&#10;&#10;נושא הקבוצה השנייה..."
+                                ></textarea>
+                                <button id="submitImportBtn">בצע ייבוא</button> {/* // TODO: Add handler */}
+                                <p><small id="importStatus">${importStatus}</small></p>
+                            </div>
+
+
+                            {/* חיפוש וסינון */}
+                            <div className="filter-controls"> {/* <-- className */}
+                                <input type="search" id="search-groups" placeholder="חיפוש..." value=${searchTerm} onInput=${e => setSearchTerm(e.target.value)} />
+                                <label htmlFor="topic-filter">סינון נושא: {/* htmlFor instead of for */}
+                                    <select id="topic-filter" value=${topicFilter} onChange=${e => setTopicFilter(e.target.value)}>
+                                        <option value="all">הכל</option>
+                                        ${TOPICS.map(t => html`<option key=${t} value="${t}">${t}</option>`)}
+                                    </select>
+                                </label>
+                                <label htmlFor="difficulty-filter">סינון רמה: {/* htmlFor instead of for */}
+                                    <select id="difficulty-filter" value=${difficultyFilter} onChange=${e => setDifficultyFilter(e.target.value)}>
+                                        <option value="all">הכל</option>
+                                        ${[1, 2, 3, 4, 5].map(d => html`<option key=${d} value="${d}">${d}</option>`)}
+                                    </select>
+                                </label>
+                            </div>
+
+                            {/* אזור הצגת הקבוצות */}
+                            <div className="group-display-area"> {/* <-- className */}
+                                ${isLoadingData && html`<p>טוען קבוצות...</p>`}
+                                {!isLoadingData && filteredGroups.length === 0 && html`<p>לא נמצאו קבוצות התואמות לסינון.</p>`}
+                                {!isLoadingData && groupsToDisplay.map(group => html`
+                                    <article key=${group.originalIndex}>
+                                        <header><strong>${group.topic || 'כללי'} - רמה ${group.difficulty || '?'}</strong> (ID: ${group.originalIndex})</header>
+                                        <ul>
+                                            ${(group.sentences || []).slice(0, 3).map((s, i) => html`<li key=${i}>${s.text || '(ריק)'}${!s.movable ? ' 🔒' : ''}</li>`)}
+                                            ${(group.sentences || []).length > 3 && html`<li>...</li>`}
+                                        </ul>
+                                        <footer>
+                                            <button className="outline secondary" style=${{padding: '0.1rem 0.5rem'}}>ערוך</button> {/* <-- className */} {/* // TODO: Add handler */}
+                                            <button className="outline contrast" style=${{padding: '0.1rem 0.5rem'}}>מחק</button> {/* <-- className */} {/* // TODO: Add handler */}
+                                        </footer>
+                                    </article>
+                                `)}
+                            </div>
+
+                            {/* ניווט */}
+                            {!isLoadingData && filteredGroups.length > ITEMS_PER_PAGE && html`
+                                <div className="pagination-controls"> {/* <-- className */}
+                                    <button onClick=${goToPrevPage} disabled=${currentPage === 1}>הקודם</button>
+                                    <span>עמוד ${currentPage} מתוך ${totalPages}</span>
+                                    <button onClick=${goToNextPage} disabled=${currentPage === totalPages}>הבא</button>
+                                </div>
+                            `}
+                         </article>
+                    </details>
+                 </div>
+             `;
+        }
+
+        // Render the App
+        ReactDOM.render(html`<${App} />`, document.getElementById('root'));
+    </script>
+</body>
+</html>
