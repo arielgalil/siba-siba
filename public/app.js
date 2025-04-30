@@ -494,25 +494,170 @@ function App() {
   }
 
   // GameSetup Component - No changes needed
-  function GameSetup({ initialDifficultyRange, initialTopics, onStartGame, allGroups }) {
-      const [difficultyKey, setDifficultyKey] = useState(() => { if (initialDifficultyRange.min === 1 && initialDifficultyRange.max === 2) return 'easy'; if (initialDifficultyRange.min === 2 && initialDifficultyRange.max === 4) return 'medium'; if (initialDifficultyRange.min === 4 && initialDifficultyRange.max === 5) return 'hard'; return 'all'; });
-      const [selectedTopicsInternal, setSelectedTopicsInternal] = useState(new Set(initialTopics));
-      const [availableCount, setAvailableCount] = useState(0);
-      const actualAvailableTopics = ['כללי', 'מעבדה', 'התא', 'אקולוגיה', 'גוף האדם'];
-      const difficultyOptions = { easy: { label: 'קל', range: { min: 1, max: 2 } }, medium: { label: 'בינוני', range: { min: 2, max: 4 } }, hard: { label: 'קשה', range: { min: 4, max: 5 } }, all: { label: 'הכל', range: { min: 1, max: 5 } } };
-      useEffect(() => { if (!allGroups || allGroups.length === 0) { setAvailableCount(0); return; } const currentRange = difficultyOptions[difficultyKey].range; const filtered = allGroups.filter(g => { const difficultyMatch = g.difficulty >= currentRange.min && g.difficulty <= currentRange.max; if (selectedTopicsInternal.size === 0) return false; const topicMatch = selectedTopicsInternal.has(g.topic || 'כללי'); return difficultyMatch && topicMatch; }); setAvailableCount(filtered.length); }, [difficultyKey, selectedTopicsInternal, allGroups]);
-      const handleDifficultyChange = (key) => { setDifficultyKey(key); };
-      const handleTopicToggle = (topic) => { setSelectedTopicsInternal(prevTopics => { const newTopics = new Set(prevTopics); if (newTopics.has(topic)) { newTopics.delete(topic); } else { newTopics.add(topic); } return newTopics; }); };
-      const handleSelectAllTopics = () => { setSelectedTopicsInternal(prevTopics => { if (prevTopics.size === actualAvailableTopics.length) { return new Set(); } else { return new Set(actualAvailableTopics); } }); };
-      const handleStartClick = () => { if (selectedTopicsInternal.size === 0) { alert('יש לבחור לפחות נושא אחד'); return; } if (availableCount === 0) { alert('לא נמצאו תרגילים התואמים לבחירה זו.'); return; } onStartGame(difficultyOptions[difficultyKey].range, selectedTopicsInternal, availableCount); };
-      const SelectionButton = ({ text, isSelected, type, onClick, isAllOption = false }) => { const baseClasses = "flex items-center justify-center space-x-2 space-x-reverse px-3 py-2 border rounded-xl cursor-pointer transition-colors duration-200 w-full text-center text-sm sm:text-base"; const isAllSelectedStyle = isAllOption && isSelected; const colorTheme = isAllSelectedStyle ? 'teal' : 'blue'; let buttonStateClasses; if (isSelected) { buttonStateClasses = `bg-${colorTheme}-500 border-${colorTheme}-700 text-white dark:bg-${colorTheme}-600 dark:border-${colorTheme}-800`; } else { buttonStateClasses = "bg-gray-100 border-gray-300 text-gray-800 hover:bg-gray-200 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-600"; } const radioCheckboxBase = `inline-flex items-center justify-center w-4 h-4 border rounded-${type === 'radio' ? 'full' : 'md'} mr-2 flex-shrink-0 ring-1 ring-inset`; let radioCheckboxSelectedClasses; if (isSelected) { radioCheckboxSelectedClasses = `bg-white border-${colorTheme}-500 dark:bg-gray-200 dark:border-${colorTheme}-600 ring-${colorTheme}-300 dark:ring-${colorTheme}-700`; } else { radioCheckboxSelectedClasses = 'border-gray-400 dark:border-gray-500 ring-transparent'; } const innerMark = isSelected ? createElement('span', { className: `block w-2 h-2 rounded-${type === 'radio' ? 'full' : 'sm'} bg-${colorTheme}-500 dark:bg-${colorTheme}-600` }) : null; return createElement( 'button', { type: 'button', className: `${baseClasses} ${buttonStateClasses}`, onClick: onClick }, createElement('span', { className: `${radioCheckboxBase} ${radioCheckboxSelectedClasses}` }, innerMark), createElement('span', { className: 'flex-grow' }, text) ); };
-      return createElement( 'div', { className: 'w-full' },
-          createElement('h2', { className: 'text-xl sm:text-2xl font-semibold text-center mb-4 text-gray-900 dark:text-gray-100' }, 'הגדרות משחק'),
-          createElement('div', { className: 'mb-6' }, createElement('h3', { className: 'text-base font-medium mb-2 text-gray-800 dark:text-gray-200' }, 'בחר רמת קושי:'), createElement('div', { className: 'grid grid-cols-2 sm:grid-cols-4 gap-3' }, Object.entries(difficultyOptions).map(([key, { label }]) => createElement(SelectionButton, { key: key, text: label, isSelected: difficultyKey === key, type: 'radio', onClick: () => handleDifficultyChange(key), isAllOption: key === 'all' })) ) ),
-          createElement('div', { className: 'mb-6' }, createElement('h3', { className: 'text-base font-medium mb-2 text-gray-800 dark:text-gray-200' }, 'בחר נושאים (אחד או יותר):'), createElement('div', { className: 'grid grid-cols-2 sm:grid-cols-3 gap-3' }, createElement(SelectionButton, { key: 'all-topics', text: 'הכל', isSelected: selectedTopicsInternal.size === actualAvailableTopics.length && actualAvailableTopics.length > 0, type: 'checkbox', onClick: handleSelectAllTopics, isAllOption: true }), actualAvailableTopics.map(topic => createElement(SelectionButton, { key: topic, text: topic, isSelected: selectedTopicsInternal.has(topic), type: 'checkbox', onClick: () => handleTopicToggle(topic), isAllOption: false })) ) ),
-          createElement('button', { className: `w-full py-2 px-5 text-base rounded-full font-semibold transition-opacity duration-300 flex items-center justify-center ${ selectedTopicsInternal.size === 0 || availableCount === 0 ? 'bg-gray-400 text-gray-700 cursor-not-allowed dark:bg-gray-600 dark:text-gray-400' : 'bg-green-500 text-white hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700' } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800`, onClick: handleStartClick, disabled: selectedTopicsInternal.size === 0 || availableCount === 0 }, createElement('span', null, 'התחל משחק'), selectedTopicsInternal.size > 0 && availableCount >= 0 && createElement('span', { className: 'text-xs font-normal opacity-80 mr-2' }, `[${availableCount} ${availableCount === 1 ? 'תרגול' : 'תרגולים'}]`) )
-      );
-  } // End of GameSetup
+  
+// public/app.js - Updated GameSetup Component (Label as Button with Input Inside)
+
+function GameSetup({ initialDifficultyRange, initialTopics, onStartGame, allGroups }) {
+    // State management remains the same as the previous version
+    const [difficultyKey, setDifficultyKey] = useState(() => {
+        if (initialDifficultyRange.min === 1 && initialDifficultyRange.max === 2) return 'easy';
+        if (initialDifficultyRange.min === 2 && initialDifficultyRange.max === 4) return 'medium';
+        if (initialDifficultyRange.min === 4 && initialDifficultyRange.max === 5) return 'hard';
+        return 'all';
+    });
+    const [selectedTopicsInternal, setSelectedTopicsInternal] = useState(new Set(initialTopics));
+    const [availableCount, setAvailableCount] = useState(0);
+
+    const actualAvailableTopics = ['כללי', 'מעבדה', 'התא', 'אקולוגיה', 'גוף האדם'];
+    const difficultyOptions = {
+        easy: { label: 'קל', range: { min: 1, max: 2 } },
+        medium: { label: 'בינוני', range: { min: 2, max: 4 } },
+        hard: { label: 'קשה', range: { min: 4, max: 5 } },
+        all: { label: 'הכל', range: { min: 1, max: 5 } }
+    };
+
+    // Effect to update available count (same as before)
+    useEffect(() => {
+        if (!allGroups || allGroups.length === 0) {
+            setAvailableCount(0);
+            return;
+        }
+        const currentRange = difficultyOptions[difficultyKey].range;
+        const filtered = allGroups.filter(g => {
+            const difficultyMatch = g.difficulty >= currentRange.min && g.difficulty <= currentRange.max;
+            if (selectedTopicsInternal.size === 0) return false;
+            const topicMatch = selectedTopicsInternal.has(g.topic || 'כללי');
+            return difficultyMatch && topicMatch;
+        });
+        setAvailableCount(filtered.length);
+    }, [difficultyKey, selectedTopicsInternal, allGroups]);
+
+    // --- Handlers (same as before) ---
+    const handleDifficultyChange = (event) => {
+        setDifficultyKey(event.target.value);
+    };
+    const handleTopicToggle = (event) => {
+        const topic = event.target.value;
+        setSelectedTopicsInternal(prevTopics => {
+            const newTopics = new Set(prevTopics);
+            if (event.target.checked) {
+                newTopics.add(topic);
+            } else {
+                newTopics.delete(topic);
+            }
+            return newTopics;
+        });
+    };
+    const handleSelectAllTopics = (event) => {
+        if (event.target.checked) {
+            setSelectedTopicsInternal(new Set(actualAvailableTopics));
+        } else {
+            setSelectedTopicsInternal(new Set());
+        }
+    };
+    const handleStartClick = () => {
+        if (selectedTopicsInternal.size === 0) { alert('יש לבחור לפחות נושא אחד'); return; }
+        if (availableCount === 0) { alert('לא נמצאו תרגילים התואמים לבחירה זו.'); return; }
+        onStartGame(difficultyOptions[difficultyKey].range, selectedTopicsInternal, availableCount);
+    };
+
+    // --- Helper function to render the new button-like label with input ---
+    const renderSelectionButton = ({ type, id, name, value, checked, onChange, labelText }) => {
+        // Base classes for the label (acting as the button)
+        const labelBaseClasses = "flex items-center justify-between w-full p-3 border rounded-lg cursor-pointer transition-all duration-200 shadow-sm";
+        // Classes for the selected state (brighter look)
+        const labelSelectedClasses = "bg-blue-100 border-blue-500 ring-2 ring-blue-300 dark:bg-blue-900 dark:border-blue-500 dark:ring-blue-600";
+        // Classes for the unselected state
+        const labelUnselectedClasses = "bg-white border-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600";
+        // Classes for the input element itself
+        const inputClasses = `h-5 w-5 accent-blue-600 focus:ring-0 focus:ring-offset-0`; // accent-* colors the check/dot
+
+        return createElement('label', {
+            htmlFor: id,
+            className: `${labelBaseClasses} ${checked ? labelSelectedClasses : labelUnselectedClasses}`
+        },
+            // Text part of the button
+            createElement('span', { className: 'text-sm sm:text-base text-gray-900 dark:text-gray-100' }, labelText),
+            // Input element (radio or checkbox) placed inside the label
+            createElement('input', {
+                type: type,
+                id: id,
+                name: name,
+                value: value,
+                checked: checked,
+                onChange: onChange,
+                className: inputClasses // Apply input specific styles
+            })
+        );
+    };
+
+    // --- Component Render Structure ---
+    return createElement(
+        'div', { className: 'w-full' }, // Main container
+        createElement('h2', { className: 'text-xl sm:text-2xl font-semibold text-center mb-5 text-gray-900 dark:text-gray-100' }, 'הגדרות משחק'),
+
+        // Difficulty Selection Section
+        createElement('div', { className: 'mb-6' },
+            createElement('h3', { className: 'text-base font-medium mb-3 text-gray-800 dark:text-gray-200' }, 'בחר רמת קושי:'),
+            createElement('div', { className: 'grid grid-cols-2 sm:grid-cols-4 gap-3' }, // Grid layout
+                // Map through difficulty options
+                Object.entries(difficultyOptions).map(([key, { label }]) =>
+                    renderSelectionButton({
+                        type: 'radio',
+                        id: `difficulty-${key}`,
+                        name: 'difficulty', // Same name groups radio buttons
+                        value: key,
+                        checked: difficultyKey === key, // Check if this is the selected difficulty
+                        onChange: handleDifficultyChange,
+                        labelText: label
+                    })
+                )
+            )
+        ),
+
+        // Topic Selection Section
+        createElement('div', { className: 'mb-6' },
+            createElement('h3', { className: 'text-base font-medium mb-3 text-gray-800 dark:text-gray-200' }, 'בחר נושאים (אחד או יותר):'),
+            createElement('div', { className: 'grid grid-cols-2 sm:grid-cols-3 gap-3' }, // Grid layout
+                 // "Select All" checkbox
+                 renderSelectionButton({
+                     type: 'checkbox',
+                     id: 'topic-all',
+                     name: 'topic-all', // Unique name
+                     value: 'all',
+                     checked: selectedTopicsInternal.size === actualAvailableTopics.length && actualAvailableTopics.length > 0,
+                     onChange: handleSelectAllTopics,
+                     labelText: 'הכל'
+                 }),
+                 // Map through available topics
+                 actualAvailableTopics.map(topic =>
+                     renderSelectionButton({
+                         type: 'checkbox',
+                         id: `topic-${topic.replace(/\s+/g, '-')}`, // Create a unique ID
+                         name: `topic-${topic.replace(/\s+/g, '-')}`, // Unique name
+                         value: topic,
+                         checked: selectedTopicsInternal.has(topic), // Check if this topic is selected
+                         onChange: handleTopicToggle,
+                         labelText: topic
+                     })
+                 )
+            )
+        ),
+
+        // Start Game Button (remains the same)
+        createElement('button', {
+             className: `w-full py-2.5 px-5 text-base rounded-full font-semibold transition-opacity duration-300 flex items-center justify-center ${selectedTopicsInternal.size === 0 || availableCount === 0 ? 'bg-gray-400 text-gray-700 cursor-not-allowed dark:bg-gray-600 dark:text-gray-400' : 'bg-green-500 text-white hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800`,
+             onClick: handleStartClick,
+             disabled: selectedTopicsInternal.size === 0 || availableCount === 0
+         },
+             createElement('span', null, 'התחל משחק'),
+             selectedTopicsInternal.size > 0 && availableCount >= 0 &&
+             createElement('span', { className: 'text-xs font-normal opacity-80 mr-2' }, `[${availableCount} ${availableCount === 1 ? 'תרגול' : 'תרגולים'}]`)
+         )
+    ); // End of GameSetup container
+}
+
+  // End of GameSetup
 
 
   // --- Main Return of App Component ---
