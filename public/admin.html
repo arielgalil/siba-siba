@@ -6,27 +6,127 @@
     <title>ניהול שרשרת הסיבות ⛓️‍💥</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-      /* ... (כל ה-CSS שהיה קודם נשאר זהה) ... */
-      #importContainer { transition: max-height 0.5s ease-out, opacity 0.5s ease-out, padding 0.5s ease-out, border-width 0.5s ease-out; max-height: 0; opacity: 0; overflow: hidden; padding-top: 0; padding-bottom: 0; border-width: 0; }
-      #importContainer.visible { max-height: 500px; opacity: 1; padding-top: 1rem; padding-bottom: 1rem; padding-left: 1rem; padding-right: 1rem; border-width: 1px; }
-      textarea { color-scheme: light dark; }
-      input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-      input[type="number"] { -moz-appearance: textfield; }
-      button:disabled, input:disabled, select:disabled { cursor: not-allowed; opacity: 0.6; }
-      select:disabled { background-color: #e5e7eb; }
-      .dark select:disabled { background-color: #4b5563; }
-      #importStatus.error { color: #dc2626; font-weight: bold; }
-      .dark #importStatus.error { color: #f87171; }
-      /* Style for pagination controls */
-      .pagination-controls { display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-bottom: 1rem; margin-top: 0.5rem; }
-      .pagination-controls button { padding: 0.25rem 0.75rem; }
-      .pagination-controls input { width: 4rem; text-align: center; padding: 0.25rem; }
-      .pagination-controls span { white-space: nowrap; }
-      /* Hide elements meant only for admins */
-      .admin-only-section { display: none; } /* Initially hidden */
-      body.is-admin .admin-only-section { display: block; } /* Shown when admin */
-      body.is-admin .non-admin-message { display: none; } /* Hide message when admin */
-      body:not(.is-admin) .admin-controls { display: none; } /* Hide controls if not admin */
+      /* Base styles */
+      body {
+        @apply bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-6 flex flex-col items-center;
+      }
+      /* Import container transition */
+      #importContainer {
+        transition: max-height 0.5s ease-out, opacity 0.5s ease-out, padding 0.5s ease-out, border-width 0.5s ease-out;
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        padding-top: 0;
+        padding-bottom: 0;
+        border-width: 0;
+      }
+      #importContainer.visible {
+        max-height: 500px; /* Adjust as needed */
+        opacity: 1;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        padding-left: 1rem; /* Added padding for consistency */
+        padding-right: 1rem;/* Added padding for consistency */
+        border-width: 1px;
+      }
+      /* Textarea color scheme */
+      textarea {
+        color-scheme: light dark;
+      }
+      /* Hide number input spinners */
+      input[type="number"]::-webkit-inner-spin-button,
+      input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      input[type="number"] {
+        -moz-appearance: textfield; /* Firefox */
+      }
+      /* Disabled elements styling */
+      button:disabled, input:disabled, select:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+       /* Specific disabled select styling */
+      select:disabled {
+        @apply bg-gray-200 dark:bg-gray-700;
+      }
+      /* Import status error styling */
+      #importStatus.error {
+        @apply text-red-600 dark:text-red-500 font-bold;
+      }
+      /* Pagination controls styling */
+      .pagination-controls {
+        @apply flex justify-center items-center gap-2 mb-4 mt-2; /* Adjusted gap and margin */
+      }
+      .pagination-controls button {
+        @apply px-3 py-1; /* Adjusted padding */
+      }
+      .pagination-controls input {
+         @apply w-16 text-center p-1; /* Adjusted width and padding */
+      }
+      .pagination-controls span {
+        white-space: nowrap;
+      }
+      /* Admin-specific section visibility */
+      .admin-only-section, .admin-controls {
+        display: none; /* Hidden by default */
+      }
+      body.is-admin .admin-only-section {
+        display: block;
+      }
+       body.is-admin .admin-controls {
+        display: flex; /* Use flex for admin controls bar */
+      }
+      /* Hide non-admin message when admin */
+      body.is-admin .non-admin-message {
+        display: none;
+      }
+       /* Ensure admin controls are hidden if not admin */
+      body:not(.is-admin) .admin-controls {
+        display: none;
+      }
+       /* Google Sign in button visibility */
+      body:not(.is-admin) #googleSignInBtn {
+        display: block !important;
+      }
+      body.is-admin #googleSignInBtn {
+         display: none !important;
+      }
+      /* Styling for the group header (as updated) */
+      .group-header-info {
+         /* Base styling is done with flex, other styles removed/adjusted */
+      }
+      .group-header-info .separator {
+          margin: 0 0.25rem; /* Reduced margin */
+          opacity: 0.5;
+      }
+       /* Class for missing info styling */
+      .missing-info {
+        @apply text-red-500 dark:text-red-400 italic;
+      }
+      /* Styling for sentences list */
+      .sentences-list {
+          list-style-type: decimal;
+          list-style-position: outside;
+          margin-right: 1.25rem; /* Standard ol margin */
+          margin-top: 0.5rem;
+          @apply space-y-1 text-sm; /* Adjusted spacing and font size */
+      }
+      /* Lock icon styling */
+      .lock-icon {
+          margin-right: 0.25rem;
+          display: inline-block;
+          opacity: 0.7;
+      }
+      /* Ensure edit button has some space */
+      .editBtn {
+        margin-left: 0.5rem; /* Add some space after the button */
+      }
+       /* Ensure the text container in the header can wrap */
+      .group-header-info > div {
+        min-width: 0; /* Allow shrinking and wrapping */
+      }
     </style>
   </head>
   <body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-6 flex flex-col items-center">
@@ -37,17 +137,17 @@
 
     <div class="mb-4 flex flex-wrap gap-2 justify-center admin-controls">
       <button id="newGroupBtn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">➕ הוסף קבוצה</button>
-      <button id="deleteGroupBtn" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700" disabled>🗑️ מחק קבוצה נוכחית</button>
+      <button id="deleteGroupBtn" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700" disabled>🗑️ מחק (זמנית מושבת)</button>
       <button id="importBtn" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">📜 ייבא קבוצות</button>
       <button id="exportBtn" class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700" disabled>📤 יצא הכל</button>
     </div>
 
-    <button id="googleSignInBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 mb-4">התחבר בגוגל</button>
+    <button id="googleSignInBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 mb-4">התחבר עם Google</button>
 
-    <div id="importContainer" class="w-full max-w-xl p-4 border rounded-lg bg-gray-100 dark:bg-gray-800 mb-4 admin-controls">
+    <div id="importContainer" class="w-full max-w-xl p-4 border rounded-lg bg-gray-100 dark:bg-gray-800 mb-4 admin-controls" style="display: none;">
         <h3 class="text-lg font-semibold mb-2">ייבוא קבוצות מטקסט</h3>
-        <p class="text-sm mb-2 text-gray-600 dark:text-gray-400"> מבנה: שורת נושא, שורת רמת קושי (1-5), שורות משפטים (עם '*' לנעול), שורה ריקה בין קבוצות. </p>
-        <textarea id="importText" rows="10" class="w-full p-2 border rounded bg-white dark:bg-gray-700 mb-2" placeholder="נושא הקבוצה הראשונה..."></textarea>
+        <p class="text-sm mb-2 text-gray-600 dark:text-gray-400"> מבנה: שורה 1=כותרת, שורה 2=נושא, שורה 3=רמת קושי (1-5), שורות 4 ואילך=משפטים (עם '*' לנעול), שורה ריקה בין קבוצות. </p>
+        <textarea id="importText" rows="10" class="w-full p-2 border rounded bg-white dark:bg-gray-700 mb-2" placeholder="כותרת הקבוצה הראשונה..."></textarea>
         <button id="submitImportBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">בצע ייבוא</button>
         <div id="importStatus" class="mt-2 text-sm text-gray-600 dark:text-gray-400"></div>
     </div>
@@ -57,35 +157,48 @@
             <input type="search" id="searchInput" placeholder="חיפוש..." class="w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" disabled />
         </div>
         <div class="mb-4 flex flex-wrap gap-4 justify-center items-center">
-            <label class="block whitespace-nowrap"> סינון נושא: <select id="topicFilter" class="p-1 border rounded bg-white dark:bg-gray-700" disabled> <option value="all">הכל</option> </select> </label>
-            <label class="block whitespace-nowrap"> סינון רמה: <select id="difficultyFilter" class="p-1 border rounded bg-white dark:bg-gray-700" disabled> <option value="all">הכל</option> <option value="1">1</option> <option value="2">2</option> <option value="3">3</option> <option value="4">4</option> <option value="5">5</option> </select> </label>
-            <button id="clearFiltersBtn" class="px-3 py-1 bg-gray-400 text-black rounded hover:bg-gray-500" disabled> נקה סינונים </button>
+            <label class="block whitespace-nowrap">
+                סינון נושא:
+                <select id="topicFilter" class="p-1 border rounded bg-white dark:bg-gray-700" disabled>
+                    <option value="all">הכל</option>
+                    </select>
+            </label>
+            <label class="block whitespace-nowrap">
+                סינון רמה:
+                <select id="difficultyFilter" class="p-1 border rounded bg-white dark:bg-gray-700" disabled>
+                    <option value="all">הכל</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select>
+            </label>
+            <button id="clearFiltersBtn" class="px-3 py-1 bg-gray-400 text-black rounded hover:bg-gray-500 dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500" disabled> נקה סינונים </button>
         </div>
         <div class="pagination-controls top-pagination">
-            <button class="prevBtn px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg" disabled>הקודם</button>
-            <span>עמוד</span>
-            <input class="pageInput w-16 px-2 py-1 border rounded-lg text-center bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" type="number" min="1" value="1" disabled />
-            <span class="pageCount">/ 1</span>
-            <button class="nextBtn px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg" disabled>הבא</button>
+             <button class="prevBtn px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-lg disabled:opacity-50" disabled>הקודם</button>
+             <span>עמוד</span>
+             <input class="pageInput w-16 px-2 py-1 border rounded-lg text-center bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 disabled:opacity-50" type="number" min="1" value="1" disabled />
+             <span class="pageCount">/ 1</span>
+             <button class="nextBtn px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-lg disabled:opacity-50" disabled>הבא</button>
         </div>
     </div>
 
     <div id="group-container" class="w-full max-w-xl min-h-[200px]">
         <p class="text-center text-gray-500 dark:text-gray-400 non-admin-message">
-            אנא התחבר עם חשבון גוגל בעל הרשאות ניהול כדי לצפות ולנהל תרגילים.
+             אנא התחבר עם חשבון Google בעל הרשאות ניהול כדי לצפות ולנהל תרגילים.
         </p>
-        <p class="text-center text-gray-500 dark:text-gray-400 admin-only-section">
-            טוען נתונים...
-        </p>
+        <p class="text-center text-gray-500 dark:text-gray-400 admin-only-section"> טוען נתונים... </p>
     </div>
 
     <div class="w-full max-w-xl admin-only-section">
         <div class="pagination-controls bottom-pagination">
-            <button class="prevBtn px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg" disabled>הקודם</button>
-            <span>עמוד</span>
-            <input class="pageInput w-16 px-2 py-1 border rounded-lg text-center bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" type="number" min="1" value="1" disabled />
-            <span class="pageCount">/ 1</span>
-            <button class="nextBtn px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg" disabled>הבא</button>
+             <button class="prevBtn px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-lg disabled:opacity-50" disabled>הקודם</button>
+             <span>עמוד</span>
+             <input class="pageInput w-16 px-2 py-1 border rounded-lg text-center bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 disabled:opacity-50" type="number" min="1" value="1" disabled />
+             <span class="pageCount">/ 1</span>
+             <button class="nextBtn px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-lg disabled:opacity-50" disabled>הבא</button>
         </div>
     </div>
 
@@ -95,9 +208,18 @@
       import { getDatabase, ref, onValue, update, set, remove, get } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
 
       // --- Firebase Configuration (trivbio) ---
-      const firebaseConfig = { /* ... הגדרות הפרויקט trivbio ... */
-        apiKey: "AIzaSyAGFC_TB8iEMvS2PyxeASj1HH4i66AW4UA", authDomain: "trivbio.firebaseapp.com", databaseURL: "https://trivbio-default-rtdb.firebaseio.com", projectId: "trivbio", storageBucket: "trivbio.appspot.com", messagingSenderId: "1097087574583", appId: "1:1097087574583:web:b36c0441537a1f596215b2", measurementId: "G-ZY245YB23E",
+      const firebaseConfig = {
+        apiKey: "AIzaSyAGFC_TB8iEMvS2PyxeASj1HH4i66AW4UA", // Replace with your actual API key if different
+        authDomain: "trivbio.firebaseapp.com",
+        databaseURL: "https://trivbio-default-rtdb.firebaseio.com",
+        projectId: "trivbio",
+        storageBucket: "trivbio.appspot.com",
+        messagingSenderId: "1097087574583",
+        appId: "1:1097087574583:web:b36c0441537a1f596215b2",
+        measurementId: "G-ZY245YB23E",
        };
+
+      // --- Initialize Firebase ---
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
       const db = getDatabase(app);
@@ -106,22 +228,21 @@
       // --- DOM Element References ---
       const statusEl = document.getElementById("status");
       const googleBtn = document.getElementById("googleSignInBtn");
-      const adminControlElements = document.querySelectorAll('.admin-controls'); // Select all admin control sections
-      const adminOnlySections = document.querySelectorAll('.admin-only-section'); // Select all admin view sections
+      const adminControlElements = document.querySelectorAll('.admin-controls');
+      const adminOnlySections = document.querySelectorAll('.admin-only-section');
+      const nonAdminMessage = document.querySelector('.non-admin-message');
       const container = document.getElementById("group-container");
-      // Pagination Controls (Query all matching elements)
       const paginationContainers = document.querySelectorAll('.pagination-controls');
       const prevBtns = document.querySelectorAll(".prevBtn");
       const nextBtns = document.querySelectorAll(".nextBtn");
       const pageInputs = document.querySelectorAll(".pageInput");
       const pageCounts = document.querySelectorAll(".pageCount");
-      // Other Controls
       const searchInput = document.getElementById("searchInput");
       const topicFilter = document.getElementById("topicFilter");
       const difficultyFilter = document.getElementById("difficultyFilter");
       const clearFiltersBtn = document.getElementById("clearFiltersBtn");
       const newBtn = document.getElementById("newGroupBtn");
-      const delBtn = document.getElementById("deleteGroupBtn");
+      const delBtn = document.getElementById("deleteGroupBtn"); // Still disabled in logic
       const importBtn = document.getElementById("importBtn");
       const exportBtn = document.getElementById("exportBtn");
       const importContainer = document.getElementById("importContainer");
@@ -129,379 +250,980 @@
       const submitImportBtn = document.getElementById("submitImportBtn");
       const importStatusEl = document.getElementById("importStatus");
 
-
       // --- Global State Variables ---
       const TOPICS = ["כללי", "התא", "גוף האדם", "אקולוגיה", "מעבדה"];
-      const ITEMS_PER_PAGE = 3; // Number of groups per page
-      let allGroups = [];
-      let filteredGroups = [];
-      let originalIdx = -1; // Index for editing (still needed for identifying which item is being edited)
-      // let filteredIdx = 0; // No longer needed, using currentPage
-      let currentPage = 1; // Current page number
-      let totalPages = 1; // Total number of pages
-      let admin = false;
-      let edit = false;
-      let isAddingNewGroup = false;
-      let newGroupDataBuffer = null;
-      let currentAuthUser = null;
-      let currentSearchTerm = "";
-      let currentTopicFilter = "all";
-      let currentDifficultyFilter = "all";
-      // let focusOnOriginalIndexAfterUpdate = -1; // Less relevant with pagination, can be removed or adapted
+      const ITEMS_PER_PAGE = 3;
+      let allGroups = [];         // Holds all groups from Firebase
+      let filteredGroups = [];    // Holds groups after filtering/searching
+      let originalIdx = -1;       // Index of group being edited (-1 if none)
+      let currentPage = 1;        // Current page number for pagination
+      let currentPageBeforeEdit = 1; // <<< CHANGE: Store page before editing
+      let totalPages = 1;         // Total pages based on filtered groups
+      let admin = false;          // Is the current user an admin?
+      let edit = false;           // Is the edit form currently active?
+      let isAddingNewGroup = false;// Is the edit form for adding a new group?
+      let newGroupDataBuffer = null;// Temporary buffer for new group data
+      let currentAuthUser = null; // Stores the Firebase auth user object
+      let currentSearchTerm = ""; // Current search input value
+      let currentTopicFilter = "all"; // Current topic filter value
+      let currentDifficultyFilter = "all"; // Current difficulty filter value
 
       // --- Initialization ---
+      // Populate topic filter dropdown
       const topicOptionsHTML = TOPICS.map(t => `<option value="${t}">${t}</option>`).join("");
       topicFilter.innerHTML += topicOptionsHTML;
 
       // --- Authentication Setup ---
       function initializeAuthListener() {
-        onAuthStateChanged(auth, (u) => {
-          currentAuthUser = u;
-          if (u) {
-            const isGoogleSignIn = u.providerData.some(p => p.providerId === "google.com");
-             if (isGoogleSignIn) {
-              googleBtn.style.display = 'none'; // Hide login button
-              statusEl.innerText = `מחובר: ${u.email}`; checkAdminStatus(u.uid);
+          onAuthStateChanged(auth, (u) => {
+            currentAuthUser = u;
+            if (u) {
+                // User is signed in
+                const isGoogleSignIn = u.providerData.some(p => p.providerId === "google.com");
+                if (isGoogleSignIn) {
+                    googleBtn.style.display = 'none'; // Hide sign-in button
+                    statusEl.innerText = `מחובר: ${u.email}`;
+                    checkAdminStatus(u.uid); // Check if this Google user is an admin
+                } else {
+                    // Could be anonymous or other provider - treat as non-admin for this panel
+                    googleBtn.style.display = 'block';
+                    statusEl.innerText = "מחובר אנונימית. התחבר עם Google לניהול.";
+                    admin = false;
+                    updateAdminUI();
+                    listenForGroups(); // Listen even if not admin, but UI prevents edits
+                }
             } else {
-              googleBtn.style.display = 'block'; statusEl.innerText = "מחובר אנונימית. התחבר עם גוגל לניהול."; admin = false; updateAdminUI(); listenForGroups(); // Listen even if anon, but UI will restrict
+                // User is signed out
+                googleBtn.style.display = 'block';
+                statusEl.innerText = "אינך מחובר. התחבר עם Google לניהול.";
+                admin = false;
+                updateAdminUI();
+                allGroups = []; // Clear data
+                edit = false;
+                isAddingNewGroup = false;
+                applyFiltersAndSearch(); // Reset filters and display
             }
-          } else {
-            googleBtn.style.display = 'block'; statusEl.innerText = "אינך מחובר. התחבר עם גוגל לניהול."; admin = false; updateAdminUI(); allGroups = []; edit = false; isAddingNewGroup = false; applyFiltersAndSearch(); // Render empty state
-          }
-        });
+          });
       }
 
+      // Set authentication persistence to local (stay logged in across sessions)
       setPersistence(auth, browserLocalPersistence)
-        .then(() => { console.log("Firebase Auth persistence set to local."); initializeAuthListener(); })
-        .catch((error) => { console.error("Error setting Firebase Auth persistence:", error); statusEl.innerText = "שגיאה בהגדרת שמירת התחברות."; initializeAuthListener(); });
-
-      const provider = new GoogleAuthProvider();
-      googleBtn.onclick = () => signInWithPopup(auth, provider).catch(e => (statusEl.innerText = "שגיאת התחברות גוגל: " + e.message));
-
-      function checkAdminStatus(uid) {
-        const adminRef = ref(db, `admins/${uid}`);
-        get(adminRef)
-          .then((snapshot) => {
-            admin = snapshot.exists() && snapshot.val() === true;
-            updateAdminUI(); if (!admin && statusEl.innerText.startsWith("מחובר:")) { statusEl.innerText += " (לא מנהל)"; }
-            listenForGroups(); // Always listen, UI/render function handles visibility
+          .then(() => {
+              console.log("Auth persistence set to local.");
+              initializeAuthListener(); // Start listening after setting persistence
           })
-          .catch((error) => { console.error("Error checking admin status:", error); admin = false; updateAdminUI(); listenForGroups(); });
+          .catch((error) => {
+              console.error("Error setting Auth persistence:", error);
+              statusEl.innerText = "שגיאה בהגדרת שמירת התחברות.";
+              initializeAuthListener(); // Still try to initialize auth
+          });
+
+      // Google Sign-In initiation
+      const provider = new GoogleAuthProvider();
+      googleBtn.onclick = () => {
+          signInWithPopup(auth, provider)
+              .catch(e => {
+                  statusEl.innerText = "שגיאת התחברות: " + e.message;
+                  console.error("Sign in error:", e);
+              });
+      };
+
+      // Check if the logged-in user's UID exists in the 'admins' node
+      function checkAdminStatus(uid) {
+          const adminRef = ref(db, `admins/${uid}`);
+          get(adminRef).then((snapshot) => {
+              admin = snapshot.exists() && snapshot.val() === true; // Check if exists and value is true
+              updateAdminUI();
+              if (!admin && statusEl.innerText.startsWith("מחובר:")) {
+                 statusEl.innerText += " (לא מנהל)"; // Add non-admin note if logged in but not admin
+              }
+              listenForGroups(); // Start listening for group data now
+          }).catch((error) => {
+              console.error("Error checking admin status:", error);
+              statusEl.innerText = "שגיאה בבדיקת הרשאות ניהול.";
+              admin = false;
+              updateAdminUI();
+              listenForGroups(); // Still listen, UI will block actions
+          });
       }
 
       // --- UI Update Function ---
+      // Toggles visibility and disabled state of elements based on admin/edit status
       function updateAdminUI() {
-          // Add/remove 'is-admin' class from body for CSS targeting
           document.body.classList.toggle('is-admin', admin);
 
-          // Hide import container if not admin and it's visible
-          if (!admin) { importContainer.classList.remove("visible"); }
-          // Cancel edit mode if user loses admin status
-          if (!admin && edit) { cancelEditOrAdd(); }
+          // Hide import container if not admin
+          if (!admin) {
+            importContainer.classList.remove("visible");
+          }
+          // If user becomes non-admin while editing, cancel the edit
+          if (!admin && edit) {
+            cancelEditOrAdd();
+          }
 
-          // Enable/disable filters only if admin
-          const disableFiltersAndNav = !admin || edit;
+          const disableFiltersAndNav = !admin || edit; // Disable filters/nav if not admin OR if editing
           searchInput.disabled = disableFiltersAndNav;
           topicFilter.disabled = disableFiltersAndNav;
           difficultyFilter.disabled = disableFiltersAndNav;
           clearFiltersBtn.disabled = disableFiltersAndNav;
-          // Enable/disable pagination controls if admin and not editing
-          paginationContainers.forEach(pc => pc.style.display = (admin && !edit) ? 'flex' : 'none');
 
-          render(); // Re-render based on new admin status
-          updateNav(); // Update nav states based on new admin status and data
+          // Show/hide pagination controls
+          paginationContainers.forEach(pc => pc.style.display = (admin && !edit && filteredGroups.length > 0) ? 'flex' : 'none');
+
+          render(); // Re-render the main content area
+          updateNav(); // Update pagination buttons state
+          updateStatusMessage(); // Update the status text
       }
-
 
       // --- Data Handling ---
+      // Listen for real-time updates on the 'groups' data in Firebase
       function listenForGroups() {
-        // No early exit for admin, fetch data but render conditionally
-        onValue(groupsRef, (snap) => {
-            const groupsData = snap.val(); let processedGroups = [];
-            if (groupsData) { /* ... processing logic as before ... */
-              if (Array.isArray(groupsData)) { processedGroups = groupsData.map((group, index) => group ? { ...group, originalIndex: index } : null).filter(Boolean); }
-              else if (typeof groupsData === 'object') { processedGroups = Object.entries(groupsData).map(([key, group]) => { const index = parseInt(key, 10); return (group && !isNaN(index)) ? { ...group, originalIndex: index } : null; }).filter(Boolean).sort((a, b) => a.originalIndex - b.originalIndex); }
-            }
-            allGroups = processedGroups;
-            if ((edit || isAddingNewGroup) && allGroups.length === 0) cancelEditOrAdd();
-            applyFiltersAndSearch(); // Apply filters and *sorting*
+          onValue(groupsRef, (snap) => {
+              const groupsData = snap.val();
+              let processedGroups = [];
 
-             // Reset to page 1 after data update/filtering unless editing
-             if(!edit) {
-                currentPage = 1;
-             }
+              if (groupsData) {
+                  // Handle both array-like objects (sparse arrays) and actual arrays
+                  if (Array.isArray(groupsData)) {
+                       // Filter out null/empty entries potentially left from deletions if stored as array
+                       processedGroups = groupsData
+                            .map((group, index) => group ? { ...group, originalIndex: index } : null)
+                            .filter(Boolean);
+                  } else if (typeof groupsData === 'object') {
+                       // Handle objects where keys are indices
+                       processedGroups = Object.entries(groupsData)
+                           .map(([key, group]) => {
+                               const index = parseInt(key, 10);
+                               // Ensure the group is valid and the key is a number
+                               return (group && !isNaN(index)) ? { ...group, originalIndex: index } : null;
+                           })
+                           .filter(Boolean) // Remove invalid entries
+                           .sort((a, b) => a.originalIndex - b.originalIndex); // Sort by original index
+                  }
+              }
+              allGroups = processedGroups;
 
-             updateStatusMessage(); render(); updateNav();
-          },
-          (error) => { /* ... error handling ... */
-              console.error("Error fetching groups:", error); statusEl.innerText = "שגיאה בקריאת נתונים."; allGroups = []; edit = false; isAddingNewGroup = false; applyFiltersAndSearch(); updateStatusMessage(); render(); updateNav();
-           }
-        );
+              // If editing or adding and the data becomes empty (e.g., deleted elsewhere), cancel edit
+              if ((edit || isAddingNewGroup) && allGroups.length === 0) {
+                 cancelEditOrAdd();
+              }
+
+              applyFiltersAndSearch(); // Apply current filters to the new data
+
+              // Don't reset currentPage if we are not editing (allows page to stay if data updates)
+              if(!edit) {
+                  // If current page becomes invalid after filtering, go to last valid page
+                   totalPages = Math.ceil(filteredGroups.length / ITEMS_PER_PAGE) || 1;
+                  if (currentPage > totalPages) {
+                      currentPage = totalPages;
+                  }
+              }
+
+              updateStatusMessage(); // Update status based on new data/filters
+              render(); // Re-render the list
+              updateNav(); // Update pagination
+          }, (error) => {
+              console.error("Error fetching groups:", error);
+              statusEl.innerText = "שגיאה בקריאת נתונים.";
+              allGroups = []; // Clear data on error
+              edit = false;
+              isAddingNewGroup = false;
+              applyFiltersAndSearch(); // Reset display
+              updateStatusMessage();
+              render();
+              updateNav();
+          });
       }
 
-      function updateStatusMessage() { /* ... status logic ... */
-          if (!admin) return; // Don't show detailed status if not admin
-          if (edit) { statusEl.innerText = isAddingNewGroup ? "מילוי פרטי קבוצה חדשה..." : `עריכת קבוצה ${originalIdx}...`; return; }
-          if (allGroups.length === 0) { statusEl.innerText = "אין קבוצות. הוסף או ייבא."; }
-          else if (filteredGroups.length === 0) { statusEl.innerText = `לא נמצאו קבוצות בסינון מתוך ${allGroups.length}.`; }
-          else {
+      // Update the status message (e.g., "Showing 1-3 of 10")
+      function updateStatusMessage() {
+          if (!admin) return; // Don't show counts if not admin
+
+          if (edit) {
+              statusEl.innerText = isAddingNewGroup ? "מילוי פרטי קבוצה חדשה..." : `עריכת קבוצה (ID מקורי: ${originalIdx})...`;
+              return;
+          }
+
+          if (allGroups.length === 0) {
+              statusEl.innerText = "אין קבוצות. הוסף קבוצה חדשה או ייבא מקובץ.";
+          } else if (filteredGroups.length === 0) {
+               statusEl.innerText = `לא נמצאו קבוצות התואמות לסינון מתוך ${allGroups.length} קבוצות בסך הכל.`;
+          } else {
               const startItem = Math.min(((currentPage - 1) * ITEMS_PER_PAGE) + 1, filteredGroups.length);
               const endItem = Math.min(currentPage * ITEMS_PER_PAGE, filteredGroups.length);
-              statusEl.innerText = `מציג ${startItem}-${endItem} מתוך ${filteredGroups.length} (סה"כ ${allGroups.length})`;
+              statusEl.innerText = `מציג ${startItem}-${endItem} מתוך ${filteredGroups.length} קבוצות מסוננות (סה"כ ${allGroups.length} קבוצות)`;
           }
       }
 
       // --- Filtering and Sorting ---
+      // Filter 'allGroups' based on current search/filter criteria
       function applyFiltersAndSearch() {
-        // Filtering logic (as before)
-        const searchTerm = currentSearchTerm.toLowerCase();
-        filteredGroups = allGroups.filter((group) => {
-          if (!group || !group.sentences || !Array.isArray(group.sentences) || typeof group.originalIndex !== "number") return false;
-          const diffMatch = currentDifficultyFilter === "all" || group.difficulty == currentDifficultyFilter;
-          const topicMatch = currentTopicFilter === "all" || (group.topic || "כללי") === currentTopicFilter;
-          const searchMatch = searchTerm === "" || (group.topic || "").toLowerCase().includes(searchTerm) || group.sentences.some(s => s && s.text && s.text.toLowerCase().includes(searchTerm));
-          return diffMatch && topicMatch && searchMatch;
-        });
+          const searchTerm = currentSearchTerm.toLowerCase();
+          filteredGroups = allGroups.filter((group) => {
+              // Basic validation of group structure
+              if (!group || !group.sentences || !Array.isArray(group.sentences) || typeof group.originalIndex !== 'number') return false;
 
-        // *** ADDED: Client-side sorting by difficulty ***
-        filteredGroups.sort((a, b) => (a.difficulty || 0) - (b.difficulty || 0));
+              // Check difficulty match
+              const diffMatch = currentDifficultyFilter === "all" || (group.difficulty || 0) == currentDifficultyFilter;
 
-        // Reset to page 1 whenever filters/search changes
-        currentPage = 1;
-       }
+              // Check topic match (treat missing topic as "כללי")
+              const topicMatch = currentTopicFilter === "all" || (group.topic || "כללי") === currentTopicFilter;
+
+               // Check search term match (in title, topic, or any sentence text)
+              const searchMatch = searchTerm === "" ||
+                   (group.title || "").toLowerCase().includes(searchTerm) ||
+                   (group.topic || "").toLowerCase().includes(searchTerm) ||
+                   group.sentences.some(s => s && s.text && s.text.toLowerCase().includes(searchTerm));
+
+              return diffMatch && topicMatch && searchMatch;
+          });
+
+           // Optional: Sort filtered groups (e.g., by difficulty, then index)
+          // filteredGroups.sort((a, b) => (a.difficulty || 0) - (b.difficulty || 0) || a.originalIndex - b.originalIndex);
+          // For now, keeping the original sort order from Firebase/processing
+          // If you uncomment sorting, make sure pagination behaves as expected.
+
+          totalPages = Math.ceil(filteredGroups.length / ITEMS_PER_PAGE) || 1;
+          // Don't reset currentPage here, let the calling context decide
+          // (e.g., reset on filter change, keep on data update)
+      }
+
 
       // --- Event Listeners for Search/Filter ---
-      searchInput.addEventListener("input", () => { if (edit) return; currentSearchTerm = searchInput.value; applyFiltersAndSearch(); render(); updateNav(); updateStatusMessage(); });
-      topicFilter.addEventListener("change", () => { if (edit) return; currentTopicFilter = topicFilter.value; applyFiltersAndSearch(); render(); updateNav(); updateStatusMessage(); });
-      difficultyFilter.addEventListener("change", () => { if (edit) return; currentDifficultyFilter = difficultyFilter.value; applyFiltersAndSearch(); render(); updateNav(); updateStatusMessage(); });
-      clearFiltersBtn.addEventListener("click", () => { if (edit) return; searchInput.value = ""; topicFilter.value = "all"; difficultyFilter.value = "all"; currentSearchTerm = ""; currentTopicFilter = "all"; currentDifficultyFilter = "all"; applyFiltersAndSearch(); render(); updateNav(); updateStatusMessage(); });
+      searchInput.addEventListener("input", () => {
+          if (edit) return; // Ignore while editing
+          currentSearchTerm = searchInput.value;
+          currentPage = 1; // Reset to first page on new search
+          applyFiltersAndSearch();
+          render();
+          updateNav();
+          updateStatusMessage();
+      });
 
-      // --- Group Actions ---
-      newBtn.onclick = () => { /* ... new group logic - ensure sentences[0] has ID ... */
-          if (!admin || edit) return; edit = true; isAddingNewGroup = true;
-          newGroupDataBuffer = { difficulty: 1, topic: "כללי", sentences: [{ text: "", movable: true, id: `s_${Date.now()}_0` }] }; // Added initial ID
-          originalIdx = -1; render(); updateNav(); updateStatusMessage();
-       };
-      delBtn.onclick = () => { /* ... delete logic - needs adjustment for pagination */
-          if (!admin || edit || filteredGroups.length === 0) return;
-          // Find the actual item index based on currentPage and relative index if needed,
-          // but deleting by originalIndex is safer if available. Let's assume deletion
-          // happens from the view mode where originalIdx is known.
-          // We need the originalIndex of the currently viewed/selected item for deletion.
-          // This needs rethinking if deleting directly from the paginated list without an explicit selection.
-          // For now, assume 'originalIdx' holds the index of the group being VIEWED before delete was clicked.
-          // Or, maybe disable delete button if multiple items are shown? Or add delete buttons per item?
-          // Let's disable delete for now in pagination view, enable only when editing?
-          alert("Delete functionality needs review for paginated view. Currently disabled in this mode.");
-          // Original delete logic commented out:
-          // const groupToDelete = ... ; // Need a way to identify which group to delete from the list
-          // const idxToDelete = groupToDelete.originalIndex;
-          // ... confirm ... remove ...
-       };
+      topicFilter.addEventListener("change", () => {
+          if (edit) return;
+          currentTopicFilter = topicFilter.value;
+           currentPage = 1; // Reset to first page on filter change
+          applyFiltersAndSearch();
+          render();
+          updateNav();
+          updateStatusMessage();
+      });
 
-      // --- Import/Export Logic --- (Needs no significant changes for pagination)
-      importBtn.onclick = () => { /* ... */ if (!admin || edit) return; importContainer.classList.toggle("visible"); importStatusEl.innerText = ""; importStatusEl.classList.remove("error"); importText.value = ""; if (importContainer.classList.contains("visible") && edit) cancelEditOrAdd(); };
-      exportBtn.onclick = () => { /* ... */ if (!admin || edit || allGroups.length === 0) return; exportGroups(allGroups); };
-      submitImportBtn.onclick = () => { /* ... */ if (!admin) return; const text = importText.value.trim(); importStatusEl.classList.remove("error"); if (!text) { importStatusEl.innerText = "תיבת טקסט ריקה."; return; } importStatusEl.innerText = "מעבד..."; const parsed = parseImportText(text); if (parsed.error) { importStatusEl.innerText = `שגיאת ניתוח: ${parsed.error}`; importStatusEl.classList.add("error"); return; } if (parsed.groups.length === 0) { importStatusEl.innerText = "לא נמצאו קבוצות תקינות לייבוא."; return; } importGroupsToFirebase(parsed.groups); };
-      function parseImportText(text) { /* ... Needs to generate sentence IDs ... */
-        const blocks = text.split(/\n\s*\n/); const newGroups = []; let error = null;
-        blocks.forEach((block, blockIndex) => {
-          if (error) return; const lines = block.trim().split("\n").map(l => l.trim()); const nonEmptyLines = lines.filter(l => l);
-          if (nonEmptyLines.length < 3) { if (nonEmptyLines.length > 0) { error = `בלוק ${blockIndex + 1}: לא תקין (נושא, רמה, משפט).`; } return; }
-          const topicLine = nonEmptyLines[0]; const topic = TOPICS.includes(topicLine) ? topicLine : "כללי";
-          const difficultyLine = nonEmptyLines[1]; const parsedDifficulty = parseInt(difficultyLine, 10); let difficulty;
-          if (isNaN(parsedDifficulty) || parsedDifficulty < 1 || parsedDifficulty > 5) { error = `בלוק ${blockIndex + 1}: רמה (${difficultyLine}) שגויה.`; return; } else { difficulty = parsedDifficulty; }
-          const sentences = nonEmptyLines.slice(2).map((line, index) => { const isLocked = line.startsWith("*"); const text = isLocked ? line.substring(1).trim() : line.trim(); if (!text) return null; const sentenceId = `s_import_${Date.now()}_${blockIndex}_${index}`; return { text: text, movable: !isLocked, id: sentenceId }; }).filter(s => s !== null);
-          if (sentences.length === 0) { error = `בלוק ${blockIndex + 1}: לא נמצאו משפטים תקינים.`; return; }
-          newGroups.push({ difficulty: difficulty, topic: topic, sentences: sentences });
-        }); return { groups: newGroups, error: error };
-      }
-      async function importGroupsToFirebase(parsedGroups) { /* ... */ if (!admin) return; importStatusEl.innerText = `מייבא ${parsedGroups.length}...`; try { const validIndices = allGroups.map(g => g.originalIndex).filter(idx => typeof idx === "number" && !isNaN(idx)); let nextIdx = validIndices.length > 0 ? Math.max(...validIndices) + 1 : 0; if (isNaN(nextIdx)) throw new Error("Could not determine next index."); const updates = {}; parsedGroups.forEach((group) => { const newIdx = nextIdx++; updates[newIdx] = { ...group, originalIndex: newIdx }; }); if (Object.keys(updates).length > 0) { await update(ref(db, "collections/groups"), updates); importStatusEl.innerText = `ייבוא הושלם! נוספו ${parsedGroups.length} קבוצות.`; importStatusEl.classList.remove("error"); importText.value = ""; importContainer.classList.remove("visible"); } else { importStatusEl.innerText = "לא נמצאו קבוצות לייבא."; importStatusEl.classList.remove("error"); } } catch (e) { console.error("Import error:", e); importStatusEl.innerText = "שגיאה בייבוא: " + e.message; importStatusEl.classList.add("error"); } }
-      function exportGroups(groupsToExport) { /* ... */ if (!groupsToExport || groupsToExport.length === 0) { statusEl.innerText = "אין קבוצות לייצא."; return; } let exportText = ""; groupsToExport.forEach((group, index) => { if (!group || !group.sentences || !Array.isArray(group.sentences)) { console.warn("Skipping invalid group during export:", group); return; } exportText += group.topic || "כללי"; exportText += "\n"; exportText += group.difficulty || 1; exportText += "\n"; group.sentences.forEach(sentence => { if (sentence && sentence.text) { exportText += (sentence.movable === false ? "*" : "") + sentence.text; exportText += "\n"; } }); if (index < groupsToExport.length - 1) exportText += "\n"; }); const blob = new Blob([exportText], { type: 'text/plain;charset=utf-8' }); const link = document.createElement("a"); const url = URL.createObjectURL(blob); link.setAttribute("href", url); link.setAttribute("download", "exported_question_groups.txt"); link.style.visibility = 'hidden'; document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url); statusEl.innerText = "הקבוצות יוצאו לקובץ."; setTimeout(() => { if (statusEl.innerText === "הקבוצות יוצאו לקובץ.") updateStatusMessage(); }, 3000); }
+      difficultyFilter.addEventListener("change", () => {
+          if (edit) return;
+          currentDifficultyFilter = difficultyFilter.value;
+          currentPage = 1; // Reset to first page on filter change
+          applyFiltersAndSearch();
+          render();
+          updateNav();
+          updateStatusMessage();
+      });
 
-      // --- Rendering Logic ---
-      const rowHTML = (text, locked, sentenceId) => ` <div class="sentence-row flex items-center space-x-2 space-x-reverse mb-2" data-sentence-id="${sentenceId || ''}"><input type="text" value="${text || ""}" class="sentence-input flex-1 p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" placeholder="הזן משפט כאן" /><label class="inline-flex items-center space-x-1 space-x-reverse" title="נעל משפט"><input type="checkbox" ${locked ? "checked" : ""} class="lock-checkbox h-5 w-5 accent-blue-500" /><span>🔒</span></label><button type="button" class="removeSentence text-red-500 hover:text-red-700 font-bold text-lg" title="מחק משפט">✖️</button></div>`;
+      clearFiltersBtn.addEventListener("click", () => {
+          if (edit) return;
+          searchInput.value = "";
+          topicFilter.value = "all";
+          difficultyFilter.value = "all";
+          currentSearchTerm = "";
+          currentTopicFilter = "all";
+          currentDifficultyFilter = "all";
+          currentPage = 1; // Reset to first page
+          applyFiltersAndSearch();
+          render();
+          updateNav();
+          updateStatusMessage();
+      });
 
-      // Updated view function for single group (used within render loop)
-      function renderSingleGroupView(g) {
-          if (!g || typeof g.originalIndex !== "number") return '<article class="text-red-500 dark:text-red-400 p-4 border rounded mb-4">שגיאה בנתוני קבוצה.</article>';
-          const topic = g.topic || "כללי"; const diff = g.difficulty || "?"; const title = `${topic} - רמה ${diff}`;
-          // Add edit button per group
-          const editBtnHTML = `<button data-original-idx="${g.originalIndex}" class="editBtn inline-block ml-4 text-blue-500 hover:text-blue-700 text-sm" title="ערוך קבוצה זו">[ערוך]</button>`;
-          return `<article class="border rounded-lg shadow p-4 bg-gray-50 dark:bg-gray-800 mb-4">
-                      <header class="mb-2 flex justify-between items-center">
-                          <h2 class="text-lg font-semibold">${title} (ID: ${g.originalIndex})</h2>
-                          ${editBtnHTML}
-                      </header>
-                      <h3 class="text-md font-semibold mb-1">משפטים:</h3>
-                      <ol class="list-decimal list-outside mr-5 space-y-1 text-sm">
-                          ${g.sentences && Array.isArray(g.sentences) && g.sentences.length > 0 ? g.sentences.map(s => `<li>${s.text || "(ריק)"}${!s.movable ? ' <span class="text-xs text-green-600 dark:text-green-400" title="נעול">🔒</span>' : ""}</li>`).join("") : "<li>אין משפטים.</li>"}
-                      </ol>
-                  </article>`;
-      }
+      // --- Group Actions (Add, Delete - Delete is disabled) ---
+      newBtn.onclick = () => {
+          if (!admin || edit) return; // Prevent if not admin or already editing
+          edit = true;
+          isAddingNewGroup = true;
+          // Reset buffer for the new group form
+          newGroupDataBuffer = {
+              title: "",
+              difficulty: 1,
+              topic: "כללי", // Default topic
+              sentences: [{ text: "", movable: true, id: `s_${Date.now()}_0` }] // Start with one empty sentence
+          };
+          originalIdx = -1; // No original index for a new group
+          document.body.classList.add('editing'); // Add class for potential specific styling
+          updateAdminUI(); // Update UI to show form, disable filters etc.
+      };
 
-      function editForm(g) { /* ... edit form rendering logic (as before) ... */
-          const data = isAddingNewGroup ? newGroupDataBuffer : g; if (!data) return '<p>שגיאה בטופס.</p>';
-          const rows = (data.sentences || []).map(s => rowHTML(s.text || "", !s.movable, s.id)).join("");
-          const topic = data.topic || "כללי"; const title = isAddingNewGroup ? "הוספת קבוצה חדשה" : `עריכת קבוצה (ID: ${originalIdx})`;
-          return `<div class="border rounded-2xl shadow-lg p-4 bg-gray-50 dark:bg-gray-800"><h2 class="text-2xl font-semibold mb-2">${title}</h2><form id="editForm" class="space-y-3"><div class="flex flex-wrap gap-4 items-center mb-4"><label class="block">רמת קושי: <input id="diffInput" type="number" value="${data.difficulty || 1}" min="1" max="5" class="p-1 border rounded bg-white dark:bg-gray-700 w-16 text-gray-900 dark:text-gray-100" /></label><label class="block">נושא: <select id="topicInput" class="p-1 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">${TOPICS.map( t => `<option value="${t}" ${t === topic ? "selected" : ""}>${t}</option>`).join("")}</select></label></div><div id="sentences-container"><h3 class="text-lg font-semibold mb-2">משפטים:</h3>${rows}</div><button type="button" id="addSentence" class="mt-2 px-3 py-1 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 rounded text-gray-900 dark:text-gray-100">➕ הוסף משפט</button><div class="flex justify-between mt-4"><button type="button" id="cancelBtn" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">ביטול</button><button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">שמור וסגור</button></div></form></div>`;
-       }
+      // Delete button functionality (currently disabled)
+      delBtn.onclick = () => {
+          alert("מחיקה מרובה אינה מופעלת כרגע.");
+          // Future implementation might involve selecting groups and then deleting.
+      };
 
-      // --- Updated Render Function ---
-      function render() {
-          if (!admin) {
-              // Show only the non-admin message if not admin
-              container.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400 non-admin-message">
-                                        אנא התחבר עם חשבון גוגל בעל הרשאות ניהול כדי לצפות ולנהל תרגילים.
-                                     </p>`;
+      // --- Import/Export Logic ---
+      importBtn.onclick = () => {
+          if (!admin || edit) return;
+          importContainer.classList.toggle("visible"); // Toggle visibility
+          importStatusEl.innerText = ""; // Clear previous status
+          importStatusEl.classList.remove("error");
+          importText.value = ""; // Clear textarea
+          // If opening import while edit was active, cancel edit (shouldn't happen due to button disable)
+          if (importContainer.classList.contains("visible") && edit) {
+              cancelEditOrAdd();
+          }
+      };
+
+      exportBtn.onclick = () => {
+          if (!admin || edit || allGroups.length === 0) return;
+          exportGroups(allGroups); // Export all groups currently loaded
+      };
+
+      submitImportBtn.onclick = () => {
+          if (!admin) return; // Should be disabled anyway, but double-check
+          const text = importText.value.trim();
+          importStatusEl.classList.remove("error"); // Clear previous error state
+
+          if (!text) {
+              importStatusEl.innerText = "תיבת טקסט ריקה. אנא הדבק את הנתונים לייבוא.";
               return;
           }
 
-          // If admin, proceed with rendering logic
+          importStatusEl.innerText = "מעבד טקסט...";
+          const parsed = parseImportText(text); // Parse the input text
+
+          if (parsed.error) {
+              importStatusEl.innerText = `שגיאת ניתוח טקסט: ${parsed.error}`;
+              importStatusEl.classList.add("error");
+              return;
+          }
+          if (parsed.groups.length === 0) {
+              importStatusEl.innerText = "לא נמצאו קבוצות תקינות בטקסט לייבוא.";
+              return;
+          }
+
+          // If parsing is successful, proceed to import to Firebase
+          importGroupsToFirebase(parsed.groups);
+      };
+
+       // Parses text block into group objects based on the defined structure
+       function parseImportText(text) {
+           const blocks = text.split(/\n\s*\n/); // Split by one or more empty lines
+           const newGroups = [];
+           let error = null;
+
+           blocks.forEach((block, blockIndex) => {
+               if (error) return; // Stop processing if an error occurred in a previous block
+               const lines = block.trim().split("\n").map(l => l.trim());
+               const nonEmptyLines = lines.filter(l => l); // Ignore empty lines within a block
+
+               // Check for minimum required lines: title, topic, difficulty, at least one sentence
+               if (nonEmptyLines.length < 4) {
+                   if (nonEmptyLines.length > 0) { // Only report error if block wasn't completely empty
+                        error = `שגיאה בבלוק מספר ${blockIndex + 1}: לא מספיק שורות (נדרש: כותרת, נושא, רמה, לפחות משפט אחד).`;
+                   }
+                   return; // Skip this block
+               }
+
+               // Line 1: Title
+               const titleLine = nonEmptyLines[0];
+               if (!titleLine) {
+                   error = `שגיאה בבלוק מספר ${blockIndex + 1}: שורת הכותרת ריקה.`;
+                   return;
+               }
+
+               // Line 2: Topic
+               const topicLine = nonEmptyLines[1];
+               // Use the topic if it's in the known TOPICS list, otherwise default to "כללי"
+               const topic = TOPICS.includes(topicLine) ? topicLine : "כללי";
+
+               // Line 3: Difficulty
+               const difficultyLine = nonEmptyLines[2];
+               const parsedDifficulty = parseInt(difficultyLine, 10);
+               let difficulty;
+               if (isNaN(parsedDifficulty) || parsedDifficulty < 1 || parsedDifficulty > 5) {
+                   error = `שגיאה בבלוק מספר ${blockIndex + 1}: רמת הקושי (${difficultyLine}) אינה תקינה (חייבת להיות מספר בין 1 ל-5).`;
+                   return;
+               } else {
+                   difficulty = parsedDifficulty;
+               }
+
+               // Lines 4 onwards: Sentences
+               const sentences = nonEmptyLines.slice(3).map((line, index) => {
+                   const isLocked = line.startsWith("*"); // Check if sentence should be locked
+                   const text = isLocked ? line.substring(1).trim() : line.trim(); // Remove '*' if present
+                   if (!text) return null; // Ignore empty sentence lines
+
+                   // Generate a unique-enough ID for the sentence (useful for React keys if used later)
+                   const sentenceId = `s_import_${Date.now()}_${blockIndex}_${index}`;
+                   return { text: text, movable: !isLocked, id: sentenceId };
+               }).filter(s => s !== null); // Remove any null entries from empty lines
+
+               if (sentences.length === 0) {
+                   error = `שגיאה בבלוק מספר ${blockIndex + 1}: לא נמצאו משפטים תקינים.`;
+                   return;
+               }
+
+               // Add the successfully parsed group
+               newGroups.push({ title: titleLine, difficulty: difficulty, topic: topic, sentences: sentences });
+           });
+
+           return { groups: newGroups, error: error }; // Return parsed groups and any error found
+       }
+
+      // Imports the parsed groups into Firebase
+      async function importGroupsToFirebase(parsedGroups) {
+          if (!admin) return;
+          importStatusEl.innerText = `מייבא ${parsedGroups.length} קבוצות ל-Firebase...`;
+
+          try {
+              // Find the next available index in the Firebase array/object
+              // Get current indices, filter out any non-numeric ones just in case
+              const validIndices = allGroups
+                  .map(g => g.originalIndex)
+                  .filter(idx => typeof idx === "number" && !isNaN(idx));
+              // Start from 0 if no groups exist, otherwise from max index + 1
+              let nextIdx = validIndices.length > 0 ? Math.max(...validIndices) + 1 : 0;
+              if (isNaN(nextIdx)) { // Safety check
+                   throw new Error("לא ניתן היה לקבוע את האינדקס הבא.");
+              }
+
+              // Prepare the updates object for Firebase
+              const updates = {};
+              parsedGroups.forEach((group) => {
+                  const newIdx = nextIdx++;
+                  // Add the originalIndex to the group object before saving
+                  updates[newIdx] = { ...group, originalIndex: newIdx };
+              });
+
+              if (Object.keys(updates).length > 0) {
+                  // Perform the update operation
+                  await update(ref(db, "collections/groups"), updates);
+                  importStatusEl.innerText = `ייבוא הושלם! נוספו ${parsedGroups.length} קבוצות חדשות.`;
+                  importStatusEl.classList.remove("error");
+                  importText.value = ""; // Clear textarea
+                  importContainer.classList.remove("visible"); // Hide import section
+                  // Data will refresh automatically via the onValue listener
+              } else {
+                  // This case should ideally be caught by parseImportText, but as a fallback
+                  importStatusEl.innerText = "לא נמצאו קבוצות לייבא.";
+                  importStatusEl.classList.remove("error");
+              }
+          } catch (e) {
+              console.error("Import error:", e);
+              importStatusEl.innerText = "שגיאה במהלך הייבוא ל-Firebase: " + e.message;
+              importStatusEl.classList.add("error");
+          }
+      }
+
+
+      // Exports the given groups array to a text file download
+      function exportGroups(groupsToExport) {
+           if (!groupsToExport || groupsToExport.length === 0) {
+              statusEl.innerText = "אין קבוצות לייצא.";
+              return;
+           }
+
+           let exportText = "";
+           groupsToExport.forEach((group, index) => {
+               // Basic validation before exporting a group
+               if (!group || !group.sentences || !Array.isArray(group.sentences)) {
+                   console.warn("Skipping invalid group during export:", group);
+                   return; // Skip this invalid group
+               }
+
+               // Format matches the import format
+               exportText += group.title || `[כותרת חסרה ID: ${group.originalIndex ?? '?'}]`; // Use ?? for nullish coalescing
+               exportText += "\n";
+               exportText += group.topic || "כללי"; // Default if missing
+               exportText += "\n";
+               exportText += group.difficulty || 1; // Default if missing
+               exportText += "\n";
+
+               group.sentences.forEach(sentence => {
+                   if (sentence && sentence.text) {
+                       // Add '*' prefix if the sentence is not movable (locked)
+                       exportText += (sentence.movable === false ? "*" : "") + sentence.text;
+                       exportText += "\n";
+                   }
+               });
+
+               // Add a blank line between groups, but not after the last one
+               if (index < groupsToExport.length - 1) {
+                   exportText += "\n\n";
+               }
+           });
+
+           // Create a Blob and trigger download
+           const blob = new Blob([exportText], { type: 'text/plain;charset=utf-8' });
+           const link = document.createElement("a");
+           const url = URL.createObjectURL(blob);
+           link.setAttribute("href", url);
+           link.setAttribute("download", "exported_question_groups.txt"); // Filename for download
+           link.style.visibility = 'hidden';
+           document.body.appendChild(link);
+           link.click(); // Simulate click to trigger download
+           document.body.removeChild(link); // Clean up the link element
+           URL.revokeObjectURL(url); // Free up memory
+
+           statusEl.innerText = "הקבוצות יוצאו לקובץ.";
+           // Reset status message after a few seconds
+           setTimeout(() => {
+                // Only reset if the message hasn't changed in the meantime
+               if (statusEl.innerText === "הקבוצות יוצאו לקובץ.") {
+                   updateStatusMessage();
+               }
+           }, 3000);
+      }
+
+
+      // --- Rendering Logic ---
+
+      // Generates HTML for a single sentence row in the edit form
+      const rowHTML = (text, locked, sentenceId) => `
+          <div class="sentence-row flex items-center space-x-2 space-x-reverse mb-2" data-sentence-id="${sentenceId || ''}">
+              <input type="text" value="${text || ""}" class="sentence-input flex-1 p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" placeholder="הזן משפט כאן" />
+              <label class="inline-flex items-center space-x-1 space-x-reverse cursor-pointer" title="נעל משפט (לא ניתן לשינוי במשחק)">
+                  <input type="checkbox" ${locked ? "checked" : ""} class="lock-checkbox h-5 w-5 accent-blue-500 rounded" />
+                  <span class="text-xl">🔒</span>
+              </label>
+              <button type="button" class="removeSentence text-red-500 hover:text-red-700 font-bold text-xl p-1 leading-none" title="מחק משפט">✖️</button>
+          </div>`;
+
+      // --- Helper Function for Difficulty Text ---
+      function getDifficultyText(level) {
+          const numericLevel = parseInt(level, 10); // Ensure it's a number
+          if (isNaN(numericLevel)) return '?'; // Handle missing/invalid level
+          if (numericLevel <= 2) return 'קל';
+          if (numericLevel <= 4) return 'בינוני';
+          return 'קשה'; // Level 5 or potentially higher (though capped at 5 in form)
+      }
+
+      // *** UPDATED renderSingleGroupView function ***
+      function renderSingleGroupView(g) {
+          if (!g || typeof g.originalIndex !== "number") {
+              return '<article class="text-red-500 dark:text-red-400 p-4 border rounded mb-4">שגיאה בנתוני קבוצה.</article>';
+          }
+
+          // Prepare display values
+          const displayTitle = g.title || '[חסרה כותרת]';
+          const displayTopic = g.topic || '[חסר נושא]';
+          // --- Use helper function for difficulty text ---
+          const displayLevelText = getDifficultyText(g.difficulty);
+
+          // Apply styling for missing info
+          const titleClass = g.title ? 'font-semibold' : 'font-semibold missing-info';
+          const topicClass = g.topic ? '' : 'missing-info';
+          // Add level class if level is missing (though getDifficultyText handles '?')
+          const levelClass = g.difficulty ? '' : 'missing-info';
+
+          // --- Edit button: make smaller (text-sm) and ensure space after (mr-2) ---
+          const editBtnHTML = `<button data-original-idx="${g.originalIndex}" class="editBtn text-blue-500 hover:text-blue-700 text-sm flex-shrink-0 mr-2 ml-0" title="ערוך קבוצה זו">✏️</button>`; // Added text-sm
+
+          // Generate sentence list HTML
+          const sentencesHTML = g.sentences && Array.isArray(g.sentences) && g.sentences.length > 0
+              ? g.sentences.map(s => `<li>${s.text || "(ריק)"}${!s.movable ? '<span class="lock-icon" title="משפט נעול">🔒</span>' : ""}</li>`).join("")
+              : "<li class='text-gray-500 italic'>אין משפטים בקבוצה זו.</li>";
+
+          // Card structure using the updated difficulty text
+          return `<article class="border rounded-lg shadow p-4 bg-gray-50 dark:bg-gray-800 mb-4">
+                      <div class="group-header-info flex items-center mb-2 pb-2 border-b border-gray-200 dark:border-gray-700">
+                          ${editBtnHTML}
+                          <div class="flex-grow min-w-0">
+                              <span class="${titleClass}">${displayTitle}</span>
+                              <span class="separator mx-1 opacity-50">|</span>
+                              <span class="${topicClass}">${displayTopic}</span>
+                              <span class="separator mx-1 opacity-50">|</span>
+                              <span class="${levelClass}">רמה: ${displayLevelText}</span>
+                          </div>
+                      </div>
+                      <ol class="sentences-list">
+                          ${sentencesHTML}
+                      </ol>
+                 </article>`;
+      }
+      // *** END UPDATED renderSingleGroupView function ***
+
+      // Generates HTML for the Edit/Add Form
+      function editForm(g) {
+          // Use the buffer if adding new, otherwise use the passed group 'g'
+          const data = isAddingNewGroup ? newGroupDataBuffer : g;
+          if (!data) return '<p class="text-red-500 dark:text-red-400">שגיאה: לא ניתן לטעון את טופס העריכה.</p>'; // Error message
+
+          // Generate sentence rows for the form
+          const rows = (data.sentences || []).map(s => rowHTML(s.text || "", !s.movable, s.id)).join("");
+
+          const currentTitle = data.title || "";
+          const currentTopic = data.topic || "כללי"; // Default topic if missing
+          const formTitle = isAddingNewGroup ? "הוספת קבוצה חדשה" : `עריכת קבוצה (ID מקורי: ${originalIdx})`;
+
+          return `
+          <div class="border rounded-2xl shadow-lg p-4 bg-gray-50 dark:bg-gray-800">
+              <h2 class="text-2xl font-semibold mb-4">${formTitle}</h2>
+              <form id="editForm" class="space-y-4">
+                  <div>
+                      <label for="titleInput" class="block text-sm font-medium text-gray-700 dark:text-gray-300">כותרת (חובה):</label>
+                      <input id="titleInput" type="text" value="${currentTitle}" class="mt-1 w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" required />
+                  </div>
+                  <div class="flex flex-wrap gap-4 items-center">
+                      <label class="block">
+                          רמת קושי:
+                          <input id="diffInput" type="number" value="${data.difficulty || 1}" min="1" max="5" class="p-1 border rounded bg-white dark:bg-gray-700 w-16 text-gray-900 dark:text-gray-100" />
+                      </label>
+                      <label class="block">
+                          נושא:
+                          <select id="topicInput" class="p-1 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                              ${TOPICS.map( t => `<option value="${t}" ${t === currentTopic ? "selected" : ""}>${t}</option>`).join("")}
+                          </select>
+                      </label>
+                  </div>
+                  <div id="sentences-container">
+                      <h3 class="text-lg font-semibold mb-2">משפטים:</h3>
+                      ${rows}
+                  </div>
+                  <button type="button" id="addSentence" class="mt-2 px-3 py-1 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 rounded text-gray-900 dark:text-gray-100">
+                      ➕ הוסף משפט
+                  </button>
+                  <div class="flex justify-between mt-6">
+                      <button type="button" id="cancelBtn" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">ביטול</button>
+                      <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">שמור וסגור</button>
+                  </div>
+              </form>
+          </div>`;
+      }
+
+      // Main Render Function: Decides whether to show message, group list, or edit form
+      function render() {
+          // If not admin and not editing (edit form might be visible briefly if auth changes)
+          if (!admin && !edit) {
+              container.innerHTML = nonAdminMessage.outerHTML; // Show the "Please log in" message
+              return;
+          } else if (nonAdminMessage) {
+              container.innerHTML = ''; // Clear message if admin or editing
+          }
+
           if (edit) {
-              // Find the specific group being edited (or use buffer for new)
+              // Find the group to edit (or use null if adding)
               const groupToEdit = isAddingNewGroup ? null : allGroups.find(g => g.originalIndex === originalIdx);
-              container.innerHTML = editForm(groupToEdit);
-          } else {
-              // Paginated view
+              container.innerHTML = editForm(groupToEdit); // Render the edit form
+          } else if (admin) {
+              // If admin and not editing, show the list of groups
               if (filteredGroups.length > 0) {
                   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
                   const endIndex = startIndex + ITEMS_PER_PAGE;
                   const groupsToDisplay = filteredGroups.slice(startIndex, endIndex);
-                  // Render the list of groups for the current page
-                  container.innerHTML = groupsToDisplay.map(renderSingleGroupView).join('');
+                  container.innerHTML = groupsToDisplay.map(renderSingleGroupView).join(''); // Render current page's groups
               } else {
-                  // Show no groups message
+                   // Show appropriate message if no groups match filters or no groups exist
                   const hasFilters = currentSearchTerm || currentTopicFilter !== "all" || currentDifficultyFilter !== "all";
-                  container.innerHTML = allGroups.length === 0 ? '<p class="text-gray-500 dark:text-gray-400">אין קבוצות. הוסף או ייבא.</p>' : hasFilters ? '<p class="text-gray-500 dark:text-gray-400">לא נמצאו קבוצות בסינון זה.</p>' : '<p class="text-gray-500 dark:text-gray-400">טוען...</p>';
+                   container.innerHTML = allGroups.length === 0
+                       ? '<p class="text-gray-500 dark:text-gray-400 admin-only-section text-center mt-4">אין קבוצות להצגה. נסה להוסיף או לייבא.</p>'
+                       : hasFilters
+                           ? '<p class="text-gray-500 dark:text-gray-400 admin-only-section text-center mt-4">אין קבוצות התואמות את החיפוש או הסינון הנוכחי.</p>'
+                           : '<p class="text-gray-500 dark:text-gray-400 admin-only-section text-center mt-4">טוען קבוצות...</p>'; // Default loading/empty message
               }
+          } else {
+              // Fallback: should not be reached if logic is correct, but clears container just in case
+              container.innerHTML = '';
           }
-      }
-
-      // --- Updated Navigation Logic ---
-      function updateNav() {
-          if (!admin) { // Hide pagination if not admin
-             paginationContainers.forEach(pc => pc.style.display = 'none');
-             return;
-          }
-          // Show pagination only if admin and not editing
-          paginationContainers.forEach(pc => pc.style.display = edit ? 'none' : 'flex');
-
-          totalPages = Math.ceil(filteredGroups.length / ITEMS_PER_PAGE);
-          if (totalPages === 0) totalPages = 1; // Prevent division by zero issues, show page 1/1
-
-          // Update both sets of controls
-          pageInputs.forEach(input => {
-              input.disabled = edit || filteredGroups.length <= ITEMS_PER_PAGE;
-              input.value = currentPage;
-              input.max = totalPages;
-              input.min = 1;
-          });
-          pageCounts.forEach(span => span.innerText = `/ ${totalPages}`);
-          prevBtns.forEach(btn => btn.disabled = edit || currentPage <= 1);
-          nextBtns.forEach(btn => btn.disabled = edit || currentPage >= totalPages);
-
-          // Update admin action buttons based on edit state and admin status
-          const disableAdminActions = !admin || edit;
-          newBtn.disabled = disableAdminActions;
-          importBtn.disabled = disableAdminActions;
-          exportBtn.disabled = disableAdminActions || allGroups.length === 0;
-          // Disable delete button in paginated view (for now) or if editing
-          delBtn.disabled = true; // Simplification: Disable delete unless specifically enabled later
-      }
-
-      // Event Listeners for Pagination (handle both sets)
-      function goToPage(newPage) {
-          if (edit) return;
-          const newPageNum = Math.max(1, Math.min(newPage, totalPages)); // Clamp page number
-          if (newPageNum !== currentPage) {
-              currentPage = newPageNum;
-              render();
-              updateNav();
-              updateStatusMessage();
-          }
-      }
-
-      prevBtns.forEach(btn => btn.onclick = () => goToPage(currentPage - 1));
-      nextBtns.forEach(btn => btn.onclick = () => goToPage(currentPage + 1));
-      pageInputs.forEach(input => input.onchange = (e) => {
-          if (edit) return;
-          let targetPage = parseInt(e.target.value, 10);
-          if (isNaN(targetPage)) targetPage = 1; // Default to 1 if invalid input
-          goToPage(targetPage);
-      });
-
-
-      function cancelEditOrAdd() { /* ... cancel logic ... */
-          edit = false; isAddingNewGroup = false; newGroupDataBuffer = null; originalIdx = -1;
-          statusEl.innerText = "בוטל";
-          document.body.classList.remove('editing'); // Optional class to indicate edit mode
-          updateAdminUI(); // This calls render() and updateNav()
-          updateStatusMessage();
-          setTimeout(() => { if (statusEl.innerText === "בוטל") updateStatusMessage(); }, 3000);
        }
 
-      // Updated Container Click Handler (Handles Edit button within rendered list)
-      container.addEventListener("click", (e) => {
-           // Edit Button Click (now attached to each rendered group)
-           if (e.target.classList.contains("editBtn") || e.target.closest('.editBtn')) {
-               const button = e.target.closest('.editBtn');
-               if (!admin || edit || !button) return;
-               const idxStr = button.getAttribute("data-original-idx");
-               const idx = parseInt(idxStr, 10);
-               if (isNaN(idx)) { statusEl.innerText = "שגיאת אינדקס."; return; }
-               const exists = allGroups.some(g => g.originalIndex === idx);
-               if (exists) {
-                   originalIdx = idx; edit = true; isAddingNewGroup = false;
-                   document.body.classList.add('editing'); // Add editing class for potential styling
-                   updateAdminUI(); // This calls render() and updateNav()
-                   updateStatusMessage();
-               } else { statusEl.innerText = "שגיאה: קבוצה לא נמצאה."; }
+      // --- Navigation Logic (Pagination) ---
+      function updateNav() {
+           if (!admin) {
+               // Hide pagination if not admin
+               paginationContainers.forEach(pc => pc.style.display = 'none');
                return;
            }
+           // Show pagination only if admin, not editing, and there are groups to display
+           paginationContainers.forEach(pc => pc.style.display = (!edit && filteredGroups.length > 0) ? 'flex' : 'none');
 
-           // Handle clicks within the edit form (Cancel, Add/Remove Sentence)
-           if (edit) {
-                if (e.target.id === "cancelBtn") { cancelEditOrAdd(); return; }
-                if (e.target.id === "addSentence") { /* ... add sentence logic ... */ const c = document.getElementById("sentences-container"); if (c) { const div = document.createElement("div"); const newSentenceId = `s_${Date.now()}_new`; div.innerHTML = rowHTML("", false, newSentenceId); const row = div.firstElementChild; if (row) { c.appendChild(row); row.querySelector('input[type="text"]')?.focus(); } } return; }
-                if (e.target.classList.contains("removeSentence")) { /* ... remove sentence logic ... */ const row = e.target.closest(".sentence-row"); const c = row?.closest("#sentences-container"); if (row && c) { if (c.querySelectorAll(".sentence-row").length <= 1) { statusEl.innerText = "חובה להשאיר משפט אחד."; row.animate([{ backgroundColor: "rgba(255,100,100,0.3)" }, { backgroundColor: "transparent" }], { duration: 600 }); setTimeout(() => updateStatusMessage(), 3000); return; } row.remove(); } return; }
+           totalPages = Math.ceil(filteredGroups.length / ITEMS_PER_PAGE) || 1; // Calculate total pages (minimum 1)
+
+           pageInputs.forEach(input => {
+               input.disabled = edit || filteredGroups.length <= ITEMS_PER_PAGE; // Disable if editing or only one page
+               input.value = currentPage;
+               input.max = totalPages;
+               input.min = 1; // Ensure min is 1
+           });
+           pageCounts.forEach(span => span.innerText = `/ ${totalPages}`);
+           prevBtns.forEach(btn => btn.disabled = edit || currentPage <= 1); // Disable prev if editing or on page 1
+           nextBtns.forEach(btn => btn.disabled = edit || currentPage >= totalPages); // Disable next if editing or on last page
+
+           // Update state of admin action buttons
+           const disableAdminActions = !admin || edit; // Disable actions if not admin or if editing
+           newBtn.disabled = disableAdminActions;
+           importBtn.disabled = disableAdminActions;
+           exportBtn.disabled = disableAdminActions || allGroups.length === 0; // Disable export if no groups at all
+           delBtn.disabled = true; // Keep delete disabled as per requirement
+       }
+
+       // Navigate to a specific page
+       function goToPage(newPage) {
+           if (edit) return; // Don't change page while editing
+           // Clamp page number within valid range
+           const newPageNum = Math.max(1, Math.min(newPage, totalPages));
+           if (newPageNum !== currentPage) {
+               currentPage = newPageNum;
+               render(); // Re-render the list for the new page
+               updateNav(); // Update pagination controls state
+               updateStatusMessage(); // Update status text
+           } else {
+               // If the input was invalid and clamped back to the current page, reset the input field visually
+               pageInputs.forEach(input => input.value = currentPage);
+           }
+       }
+
+       // Event listeners for pagination buttons
+       prevBtns.forEach(btn => btn.onclick = () => goToPage(currentPage - 1));
+       nextBtns.forEach(btn => btn.onclick = () => goToPage(currentPage + 1));
+       pageInputs.forEach(input => input.onchange = (e) => {
+           if (edit) return;
+           let targetPage = parseInt(e.target.value, 10);
+           if (isNaN(targetPage)) {
+               targetPage = 1; // Default to 1 if input is not a number
+           }
+           goToPage(targetPage);
+       });
+       // Also handle Enter key press in page input
+       pageInputs.forEach(input => input.onkeydown = (e) => {
+           if (edit) return;
+           if (e.key === 'Enter') {
+               e.preventDefault(); // Prevent potential form submission if it were inside one
+               let targetPage = parseInt(e.target.value, 10);
+               if (isNaN(targetPage)) {
+                   targetPage = 1;
+               }
+               goToPage(targetPage);
            }
        });
 
-      // --- Edit Form Submit Handler (Corrected - Adds sentence IDs) ---
-      container.addEventListener("submit", (e) => {
-        e.preventDefault(); if (!admin || !edit) return; const form = e.target; if (form.id !== "editForm") return;
-        statusEl.innerText = "שומר...";
-        const diffInput = document.getElementById("diffInput"); const topicInput = document.getElementById("topicInput");
-        const difficulty = diffInput ? parseInt(diffInput.value) || 1 : 1; const topic = topicInput ? topicInput.value : "כללי";
-        const rows = [...form.querySelectorAll(".sentence-row")]; let errorOccurred = false;
+      // --- Edit Form Actions (Cancel, Add/Remove Sentence) ---
 
-        const sentences = rows.map((row, index) => {
-            const textInput = row.querySelector(".sentence-input");
-            const lockCheckbox = row.querySelector(".lock-checkbox");
-            let sentenceId = row.getAttribute('data-sentence-id'); // Get existing ID from attribute
-            if (!sentenceId) { sentenceId = `s_${Date.now()}_${index}`; console.log("Generated missing ID for sentence:", sentenceId); } // Generate if missing
-            if (!textInput || !lockCheckbox) { console.error("Structure error in row:", row); errorOccurred = true; return null; }
-            const textValue = textInput.value.trim();
-            if (!textValue) return null;
-            return { text: textValue, movable: !lockCheckbox.checked, id: sentenceId };
-          }).filter(s => s !== null);
+      // Function to cancel editing or adding a new group
+      function cancelEditOrAdd() {
+          edit = false;
+          isAddingNewGroup = false;
+          newGroupDataBuffer = null; // Clear buffer
+          originalIdx = -1; // Reset index
+          statusEl.innerText = "פעולה בוטלה";
+          document.body.classList.remove('editing'); // Remove editing class
+          updateAdminUI(); // Restore normal view, enable filters etc.
+          // Status message will be updated by updateAdminUI
+          setTimeout(() => updateStatusMessage(), 1500); // Clear "Cancelled" message after a bit
+      }
 
-        if (errorOccurred) { statusEl.innerText = "שגיאה במבנה אחד המשפטים."; return; }
-        if (sentences.length === 0) { statusEl.innerText = "חובה להזין לפחות משפט אחד."; setTimeout(() => updateStatusMessage(), 3000); return; }
+      // Event delegation for clicks within the main container
+      container.addEventListener("click", (e) => {
+           // --- Handle Edit Button Click ---
+           const editButton = e.target.closest('.editBtn'); // Find closest edit button ancestor
+           if (editButton) {
+               if (!admin || edit) return; // Ignore if not admin or already editing
+               const idxStr = editButton.getAttribute("data-original-idx");
+               const idx = parseInt(idxStr, 10);
+               if (isNaN(idx)) {
+                   statusEl.innerText = "שגיאה: אינדקס לא תקין בכפתור העריכה.";
+                   return;
+               }
+               // Verify the group actually exists in our current data
+               const exists = allGroups.some(g => g.originalIndex === idx);
+               if (exists) {
+                   originalIdx = idx;
+                   edit = true;
+                   isAddingNewGroup = false;
+                   currentPageBeforeEdit = currentPage; // <<< CHANGE: Store current page
+                   document.body.classList.add('editing');
+                   updateAdminUI(); // Render edit form and update controls
+               } else {
+                   statusEl.innerText = "שגיאה: הקבוצה שנבחרה לעריכה לא נמצאה בנתונים.";
+                   // Data might be out of sync? Listener should update soon.
+               }
+               return; // Handled edit button click
+           }
 
-        const finalGroupDataBase = { difficulty, topic, sentences }; let finalGroupData = {};
-        const wasAdding = isAddingNewGroup; let savePromise; let savePath; let indexToSaveAt;
-        try {
-          if (wasAdding) { const validIndices = allGroups.map(g => g.originalIndex).filter(idx => typeof idx === "number" && !isNaN(idx)); indexToSaveAt = validIndices.length > 0 ? Math.max(...validIndices) + 1 : 0; if (isNaN(indexToSaveAt)) throw new Error("Idx calc failed."); savePath = ref(db, `collections/groups/${indexToSaveAt}`); finalGroupData = { ...finalGroupDataBase, originalIndex: indexToSaveAt }; savePromise = set(savePath, finalGroupData); }
-          else { if (typeof originalIdx !== "number" || isNaN(originalIdx) || originalIdx < 0) throw new Error(`Invalid original index: ${originalIdx}`); indexToSaveAt = originalIdx; savePath = ref(db, `collections/groups/${indexToSaveAt}`); finalGroupData = { ...finalGroupDataBase, originalIndex: indexToSaveAt }; savePromise = update(savePath, finalGroupData); }
-          console.log(`Saving to index: ${indexToSaveAt}`, finalGroupData);
-          savePromise.then(() => { statusEl.innerText = wasAdding ? "קבוצה חדשה נשמרה" : "נשמר"; const savedOriginalIndex = indexToSaveAt; /* focusOnOriginalIndexAfterUpdate = savedOriginalIndex; */ cancelEditOrAdd(); setTimeout(() => updateStatusMessage(), 3000); }).catch((e) => { console.error("Save promise error:", e); statusEl.innerText = "שגיאה בשמירה: " + e.message; });
-        } catch (error) { console.error("Error preparing save:", error); statusEl.innerText = "שגיאה בהכנה לשמירה: " + error.message; }
+           // --- Handle Actions Inside Edit Form ---
+           if (edit) {
+               // Cancel Button
+               if (e.target.id === "cancelBtn") {
+                   cancelEditOrAdd();
+                   return;
+               }
+               // Add Sentence Button
+               if (e.target.id === "addSentence") {
+                   const sentencesContainer = document.getElementById("sentences-container");
+                   if (sentencesContainer) {
+                       const div = document.createElement("div");
+                       const newSentenceId = `s_${Date.now()}_new`; // Generate temporary ID
+                       // Use rowHTML to create the new sentence row elements
+                       div.innerHTML = rowHTML("", false, newSentenceId); // Default: empty, not locked
+                       const newRow = div.firstElementChild;
+                       if (newRow) {
+                           sentencesContainer.appendChild(newRow);
+                           // Focus the input of the newly added row
+                           newRow.querySelector('input[type="text"]')?.focus();
+                       }
+                   }
+                   return;
+               }
+               // Remove Sentence Button
+               const removeButton = e.target.closest('.removeSentence');
+               if (removeButton) {
+                   const rowToRemove = removeButton.closest(".sentence-row");
+                   const sentencesContainer = rowToRemove?.closest("#sentences-container");
+                   if (rowToRemove && sentencesContainer) {
+                       // Prevent removing the last sentence
+                       if (sentencesContainer.querySelectorAll(".sentence-row").length <= 1) {
+                           statusEl.innerText = "חובה להשאיר לפחות משפט אחד בקבוצה.";
+                           // Optional: visual feedback like flashing the row
+                           rowToRemove.animate([
+                               { backgroundColor: "rgba(255, 100, 100, 0.3)" },
+                               { backgroundColor: "transparent" }
+                           ], { duration: 600 });
+                           setTimeout(() => updateStatusMessage(), 3000); // Reset status after message display
+                           return;
+                       }
+                       rowToRemove.remove(); // Remove the sentence row
+                   }
+                   return;
+               }
+           } // End of edit-mode actions
+       }); // End of container click handler
+
+      // --- Edit Form Submit Handler ---
+      container.addEventListener("submit", async (e) => {
+          e.preventDefault(); // Prevent default form submission
+          if (!admin || !edit) return; // Ignore if not admin or not in edit mode
+          const form = e.target;
+          if (form.id !== "editForm") return; // Ensure it's the correct form
+
+          statusEl.innerText = "שומר נתונים...";
+
+          // Get values from form fields
+          const titleInput = document.getElementById("titleInput");
+          const title = titleInput ? titleInput.value.trim() : "";
+          // Title Validation
+          if (!title) {
+              statusEl.innerText = "שגיאה: חובה להזין כותרת לקבוצה.";
+              titleInput?.focus(); // Focus the title input for correction
+              // Flash background?
+              titleInput?.animate([{ backgroundColor: "rgba(255, 100, 100, 0.3)" }, { backgroundColor: "transparent" }], { duration: 600 });
+              setTimeout(() => updateStatusMessage(), 3000); // Reset status message
+              return;
+          }
+
+          const diffInput = document.getElementById("diffInput");
+          const topicInput = document.getElementById("topicInput");
+          const difficulty = diffInput ? parseInt(diffInput.value) || 1 : 1; // Default to 1 if invalid
+          const topic = topicInput ? topicInput.value : "כללי"; // Default if missing
+
+          // Get sentences from the form rows
+          const rows = [...form.querySelectorAll(".sentence-row")];
+          let errorOccurred = false;
+          const sentences = rows.map((row, index) => {
+              const textInput = row.querySelector(".sentence-input");
+              const lockCheckbox = row.querySelector(".lock-checkbox");
+              let sentenceId = row.getAttribute('data-sentence-id'); // Get existing or generated ID
+
+              // Basic check for row structure integrity
+              if (!textInput || !lockCheckbox) {
+                  console.error("Structure error in sentence row:", row);
+                  errorOccurred = true;
+                  return null; // Mark as invalid
+              }
+              const textValue = textInput.value.trim();
+              if (!textValue) return null; // Skip empty sentences
+
+              // Ensure sentence has an ID, generate if missing (shouldn't happen with current logic)
+              if (!sentenceId) sentenceId = `s_${Date.now()}_${index}`;
+
+              return {
+                  text: textValue,
+                  movable: !lockCheckbox.checked, // Movable is true if checkbox is NOT checked
+                  id: sentenceId
+              };
+          }).filter(s => s !== null); // Remove nulls from skipped empty/error rows
+
+          if (errorOccurred) {
+              statusEl.innerText = "שגיאה במבנה הטופס, לא ניתן לשמור.";
+              setTimeout(() => updateStatusMessage(), 3000);
+              return;
+          }
+          if (sentences.length === 0) {
+              statusEl.innerText = "חובה להזין לפחות משפט אחד תקין בקבוצה.";
+               // Optional: Highlight the sentences area
+              document.getElementById('sentences-container')?.animate([{ outline: "2px solid red" }, { outline: "none" }], { duration: 600 });
+              setTimeout(() => updateStatusMessage(), 3000);
+              return;
+          }
+
+          // Prepare the final group data object
+          const finalGroupDataBase = { title, difficulty, topic, sentences };
+          let finalGroupData = {};
+          const wasAdding = isAddingNewGroup; // Store if we were adding before potentially resetting state
+          let savePromise;
+          let savePath;
+          let indexToSaveAt;
+
+          try {
+              if (wasAdding) {
+                  // Adding a new group: find the next index
+                  const validIndices = allGroups.map(g => g.originalIndex).filter(idx => typeof idx === "number" && !isNaN(idx));
+                  indexToSaveAt = validIndices.length > 0 ? Math.max(...validIndices) + 1 : 0;
+                  if (isNaN(indexToSaveAt)) throw new Error("חישוב אינדקס לקבוצה חדשה נכשל.");
+
+                  savePath = ref(db, `collections/groups/${indexToSaveAt}`);
+                  // Include the calculated originalIndex in the data being saved
+                  finalGroupData = { ...finalGroupDataBase, originalIndex: indexToSaveAt };
+                  savePromise = set(savePath, finalGroupData); // Use 'set' for new data
+              } else {
+                  // Editing an existing group: use the stored originalIdx
+                   if (typeof originalIdx !== "number" || isNaN(originalIdx) || originalIdx < 0) {
+                      throw new Error(`אינדקס מקורי לא תקין לעריכה: ${originalIdx}`);
+                  }
+                  indexToSaveAt = originalIdx;
+                  savePath = ref(db, `collections/groups/${indexToSaveAt}`);
+                  // Include originalIndex in the update data as well for consistency
+                  finalGroupData = { ...finalGroupDataBase, originalIndex: indexToSaveAt };
+                  // Use 'update' which is safer for existing nodes, though 'set' would also work here
+                  savePromise = update(savePath, finalGroupData);
+              }
+
+              console.log(`Saving to index: ${indexToSaveAt}`, finalGroupData);
+
+              // Execute the save operation
+              await savePromise;
+
+              // --- Success ---
+              statusEl.innerText = wasAdding ? "קבוצה חדשה נשמרה בהצלחה!" : "השינויים נשמרו בהצלחה!";
+              const pageToReturnTo = currentPageBeforeEdit; // <<< CHANGE: Use the saved page
+              cancelEditOrAdd(); // Exit edit mode, this calls updateAdminUI -> render -> updateNav
+
+              // <<< CHANGE: After cancel, ensure the correct page is displayed >>>
+              // We need to potentially reset currentPage *after* cancelEditOrAdd has finished its UI updates
+              // Use a small timeout or directly call render/updateNav again after setting page
+               setTimeout(() => {
+                   if (!wasAdding && filteredGroups.length > 0) {
+                       totalPages = Math.ceil(filteredGroups.length / ITEMS_PER_PAGE) || 1;
+                       currentPage = Math.max(1, Math.min(pageToReturnTo, totalPages)); // Go back to the saved page, ensure it's valid
+                       console.log("Returning to page:", currentPage);
+                       render();
+                       updateNav();
+                   }
+                   updateStatusMessage(); // Update status after potential page change
+               }, 0); // Timeout 0 can help ensure it runs after current execution stack clears
+
+              // Clear success message after a delay
+              setTimeout(() => updateStatusMessage(), 3000);
+
+          } catch (error) {
+              // --- Error ---
+              console.error("Error during save operation:", error);
+              statusEl.innerText = "שגיאה בשמירת הנתונים: " + error.message;
+              // Consider leaving the form open for the user to retry or copy data
+              // Optionally add visual feedback to the save button or form
+          }
       }); // End of Submit Handler
 
-      // Initial Load Trigger
-      initializeAuthListener(); // Start the auth process
+      // --- Initial Load Trigger ---
+      // Start the authentication process, which will subsequently load data
+      initializeAuthListener();
 
     </script>
   </body>
