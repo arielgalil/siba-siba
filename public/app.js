@@ -1,4 +1,4 @@
-// public/app.js - Final Version (incorporating UI changes)
+// public/app.js - Final Version (incorporating UI changes + Header alignment fix v2)
 
 const { createElement, useState, useEffect, useRef } = React;
 
@@ -468,19 +468,22 @@ function App() {
         return React.createElement('footer', { className: 'w-full text-center text-xs text-gray-500 dark:text-gray-400 pt-4 pb-2 mt-auto' }, 'פותח על ידי אריאל מ', React.createElement('a', { href: 'https://galilbio.wordpress.com', target: '_blank', rel: 'noopener noreferrer', className: linkClass }, 'הביולוגים של גליל'), ' בעזרת ', React.createElement('a', { href: 'https://grok.com', target: '_blank', rel: 'noopener noreferrer', className: linkClass }, 'Grok'), ', ', React.createElement('a', { href: 'https://chatgpt.com/', target: '_blank', rel: 'noopener noreferrer', className: linkClass }, 'Chat GPT'), ' וגם ', React.createElement('a', { href: 'https://gemini.google.com/', target: '_blank', rel: 'noopener noreferrer', className: linkClass }, 'Gemini'), React.createElement('span', { className: separatorClass }, '|'), React.createElement('a', { href: './admin.html', target: '_blank', rel: 'noopener noreferrer', className: linkClass }, 'ניהול'));
      }
 
-    // *** Updated GameHeader for RTL/LTR alignment ***
+    // *** Updated GameHeader for RTL/LTR alignment - Attempt 3 ***
     function GameHeader() {
         const handleEditUsername = () => { const newName = prompt("הכנס שם משתמש חדש (עד 25 תווים):", userName); if (newName !== null) { handleUpdateUsername(newName); } };
         return createElement('div', {className: 'flex items-center w-full max-w-4xl mx-auto px-4 pt-2'},
             // Order reversed: Title first, User Info second
             createElement('h1', { className: 'title text-xl sm:text-2xl font-bold text-center text-gray-900 dark:text-gray-100 flex-1 px-2' }, 'שרשרת סיבות ⛓️‍💥‏‏'),
-            // User Info block with directional classes
-            createElement('div', {className: 'w-auto flex flex-col min-w-[80px] rtl:text-left ltr:text-right rtl:items-start ltr:items-end'}, // Added RTL/LTR classes
-                createElement('div', { className: 'flex items-center cursor-pointer group', title:"לחץ לעריכת שם המשתמש", onClick: handleEditUsername },
+            // User Info block - Removed alignment classes from here
+            createElement('div', {className: 'w-auto flex flex-col'},
+                 // Username Div - Added explicit alignment
+                createElement('div', { className: 'flex items-center cursor-pointer group rtl:text-left ltr:text-right', title:"לחץ לעריכת שם המשתמש", onClick: handleEditUsername },
                     createElement('span', { className: 'mr-1 text-xs text-gray-500 dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity' }, '✏️'),
                     createElement('span', { className: 'text-sm font-medium text-gray-700 dark:text-gray-300 truncate' }, userName || 'טוען...')
                 ),
-                createElement('div', { className: 'text-xs text-gray-500 dark:text-gray-400 mt-0.5', ref: scoreRef }, `ניקוד: ${formatScore(cumulativeScore)}`) )
+                 // Score div - Added explicit alignment
+                createElement('div', { className: 'text-xs text-gray-500 dark:text-gray-400 mt-0.5 rtl:text-left ltr:text-right', ref: scoreRef }, `ניקוד: ${formatScore(cumulativeScore)}`)
+            )
         );
     }
     // *** End Updated GameHeader ***
