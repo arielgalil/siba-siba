@@ -1,0 +1,130 @@
+/* קובץ: public/styles.css - גרסה מעודכנת */
+
+/* הגדרות בסיסיות ל-html ול-body כדי לאפשר flex בגובה מלא */
+html, body {
+    height: 100%; /* חשוב לגובה מלא */
+    margin: 0;
+    padding: 0;
+    /* הגדרות נוספות כמו גופן הוחלו ב-index.html או דרך Tailwind */
+  }
+  
+  body {
+    display: flex; /* הפוך את ה-body ל-flex container */
+    flex-direction: column; /* סידור אנכי (הדר, תוכן, פוטר) */
+    /* הגדרות רקע וצבע טקסט מנוהלות ע"י Tailwind בקלאסים של ה-body */
+    /* background-color: #f8f9fa; */
+    /* color: #000; */
+  }
+  
+  /* הגדרות ל-div#root כדי שיתפוס את הגובה הפנוי */
+  #root {
+    display: flex; /* אפשר לו להשתמש ב-flex פנימי */
+    flex-direction: column; /* המשך סידור אנכי בתוך ה-root */
+    flex-grow: 1; /* גורם לו למלא את הגובה הפנוי ב-body */
+    /* אין צורך ב-min-height כאן */
+  }
+  
+  
+  /* ה-container הפנימי ב-App.js כבר לא צריך min-height */
+  /* אפשר להשאיר הגדרות אחרות אם יש, או להסתמך על Tailwind */
+  .container {
+    /* padding: 20px; */ /* מנוהל ע"י Tailwind ב-App */
+    display: flex; /* כבר מוגדר ב-App.js עם Tailwind */
+    flex-direction: column; /* כבר מוגדר ב-App.js עם Tailwind */
+    align-items: center; /* כבר מוגדר ב-App.js עם Tailwind */
+    gap: 1rem; /* מנוהל ע"י Tailwind ב-App */
+    /* background-color: transparent; */ /* נותן לרקע ה-body לשלוט */
+    width: 100%; /* ודא שהוא תופס רוחב מלא בתוך #root */
+    /* flex-grow: 1; */ /* הוסר מכאן, כי #root מטפל בזה */
+  }
+  
+  /* עיצוב תיבות המשחק (Text Box) - נשאר כפי שהיה, מנוהל בעיקר ע"י Tailwind */
+  .text-box {
+    padding: 0.75rem 1.5rem 0.75rem 1rem; /* P-3 בערך, עם התאמה ל-icon */
+    border: 1px solid #cbd5e1; /* border-gray-300 */
+    border-radius: 1rem; /* rounded-2xl */
+    background-color: #ffffff; /* bg-white */
+    color: #1f2937; /* text-gray-800 */
+    font-size: 1rem; /* text-base - שים לב, ב-App.js הגדרנו text-base, אז זה צריך להתאים */
+    cursor: grab;
+    position: relative;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s; /* הוספת border-color */
+    /* מחלקות אלו צריכות להיות על האלמנט עצמו ב-React */
+    /* display: flex; items-center; w-full; max-w-md; my-1; shadow-sm; */
+  }
+  
+  .text-box.correct {
+    background-color: #dcfce7; /* green-100 */
+    border-color: #86efac; /* green-300 */
+    color: #166534; /* green-800 */
+    cursor: default;
+  }
+  
+  .text-box.wrong {
+    background-color: #fee2e2; /* red-100 */
+    border-color: #fca5a5; /* red-300 */
+    color: #991b1b; /* red-800 */
+    /* cursor נשאר grab עד שזה ננעל/מוגש? או לשנות לפי הצורך */
+  }
+  
+  .text-box.fixed {
+    cursor: default;
+    /* border-style: dashed; */ /* אפשר להוסיף */
+    /* border-color: #9ca3af; */ /* gray-400 */ /* אפשר להוסיף */
+  }
+  
+  /* עיצוב האייקונים בתוך תיבות הטקסט (אם לא הוגדר ב-Tailwind) */
+  .icon {
+    font-size: 1.25rem; /* text-xl */
+    color: #6b7280; /* text-gray-500 */
+  }
+  
+  /* עיצוב כפתורי הפעולה (check-button) - נראה שמנוהל לגמרי ע"י Tailwind ב-App.js */
+  .check-button {
+    /* מחלקות Tailwind מגדירות את רוב העיצוב עכשיו ב-app.js */
+    cursor: pointer;
+    transition: background-color 0.3s, opacity 0.3s;
+  }
+  /* הסרנו את הכללים הספציפיים כי getButtonClasses מטפל בזה */
+  /* .check-button.ready { ... } */
+  /* .check-button:disabled { ... } */
+  
+  /* אזור הודעות (Toast) - מנוהל ע"י App.js עם Tailwind */
+  .message {
+    min-height: 1.5em;
+    font-size: 1rem; /* text-base */
+    text-align: center;
+    /* צבעים מנוהלים ע"י Tailwind dark:text-gray-300 */
+  }
+  
+  /* אנימציית פעימה (כפי שהיה, שימושי לניקוד) */
+  @keyframes pulseAnim {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+  .pulse {
+    animation: pulseAnim 0.8s ease-in-out;
+  }
+  
+  /* הגדרות מצב כהה - נשען על Tailwind ועל הקלאס ב-body */
+  /* body.dark-mode { ... } או מחלקות dark: של Tailwind */
+  
+  /* מבנה פנימי של תיבת טקסט - כנראה מיותר */
+  /*
+  .text-box > div {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  */
+  
+  /* למניעת בחירת טקסט בגרירה (אם רוצים להשאיר בנוסף ל-user-select: none) */
+  .no-select {
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE/Edge */
+    user-select: none; /* Standard */
+  }
+  
+  /* ניתן להוסיף כאן התאמות נוספות אם נדרש */
