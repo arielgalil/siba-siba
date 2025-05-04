@@ -137,7 +137,6 @@
 
     <div class="mb-4 flex flex-wrap gap-2 justify-center admin-controls">
       <button id="newGroupBtn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">➕ הוסף קבוצה</button>
-      <button id="deleteGroupBtn" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700" disabled>🗑️ מחק (זמנית מושבת)</button>
       <button id="importBtn" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">📜 ייבא קבוצות</button>
       <button id="exportBtn" class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700" disabled>📤 יצא הכל</button>
     </div>
@@ -161,7 +160,7 @@
                 סינון נושא:
                 <select id="topicFilter" class="p-1 border rounded bg-white dark:bg-gray-700" disabled>
                     <option value="all">הכל</option>
-                    </select>
+                </select>
             </label>
             <label class="block whitespace-nowrap">
                 סינון רמה:
@@ -186,9 +185,9 @@
     </div>
 
     <div id="group-container" class="w-full max-w-xl min-h-[200px]">
-        <p class="text-center text-gray-500 dark:text-gray-400 non-admin-message">
+         <p class="text-center text-gray-500 dark:text-gray-400 non-admin-message">
              אנא התחבר עם חשבון Google בעל הרשאות ניהול כדי לצפות ולנהל תרגילים.
-        </p>
+         </p>
         <p class="text-center text-gray-500 dark:text-gray-400 admin-only-section"> טוען נתונים... </p>
     </div>
 
@@ -217,7 +216,7 @@
         messagingSenderId: "1097087574583",
         appId: "1:1097087574583:web:b36c0441537a1f596215b2",
         measurementId: "G-ZY245YB23E",
-       };
+      };
 
       // --- Initialize Firebase ---
       const app = initializeApp(firebaseConfig);
@@ -242,7 +241,7 @@
       const difficultyFilter = document.getElementById("difficultyFilter");
       const clearFiltersBtn = document.getElementById("clearFiltersBtn");
       const newBtn = document.getElementById("newGroupBtn");
-      const delBtn = document.getElementById("deleteGroupBtn"); // Still disabled in logic
+      // const delBtn = document.getElementById("deleteGroupBtn"); // Reference removed as button is removed
       const importBtn = document.getElementById("importBtn");
       const exportBtn = document.getElementById("exportBtn");
       const importContainer = document.getElementById("importContainer");
@@ -351,7 +350,6 @@
       // Toggles visibility and disabled state of elements based on admin/edit status
       function updateAdminUI() {
           document.body.classList.toggle('is-admin', admin);
-
           // Hide import container if not admin
           if (!admin) {
             importContainer.classList.remove("visible");
@@ -386,7 +384,7 @@
                   // Handle both array-like objects (sparse arrays) and actual arrays
                   if (Array.isArray(groupsData)) {
                        // Filter out null/empty entries potentially left from deletions if stored as array
-                       processedGroups = groupsData
+                        processedGroups = groupsData
                             .map((group, index) => group ? { ...group, originalIndex: index } : null)
                             .filter(Boolean);
                   } else if (typeof groupsData === 'object') {
@@ -413,7 +411,7 @@
               // Don't reset currentPage if we are not editing (allows page to stay if data updates)
               if(!edit) {
                   // If current page becomes invalid after filtering, go to last valid page
-                   totalPages = Math.ceil(filteredGroups.length / ITEMS_PER_PAGE) || 1;
+                  totalPages = Math.ceil(filteredGroups.length / ITEMS_PER_PAGE) || 1;
                   if (currentPage > totalPages) {
                       currentPage = totalPages;
                   }
@@ -499,7 +497,6 @@
           updateNav();
           updateStatusMessage();
       });
-
       topicFilter.addEventListener("change", () => {
           if (edit) return;
           currentTopicFilter = topicFilter.value;
@@ -509,7 +506,6 @@
           updateNav();
           updateStatusMessage();
       });
-
       difficultyFilter.addEventListener("change", () => {
           if (edit) return;
           currentDifficultyFilter = difficultyFilter.value;
@@ -519,7 +515,6 @@
           updateNav();
           updateStatusMessage();
       });
-
       clearFiltersBtn.addEventListener("click", () => {
           if (edit) return;
           searchInput.value = "";
@@ -535,7 +530,7 @@
           updateStatusMessage();
       });
 
-      // --- Group Actions (Add, Delete - Delete is disabled) ---
+      // --- Group Actions (Add) ---
       newBtn.onclick = () => {
           if (!admin || edit) return; // Prevent if not admin or already editing
           edit = true;
@@ -552,11 +547,7 @@
           updateAdminUI(); // Update UI to show form, disable filters etc.
       };
 
-      // Delete button functionality (currently disabled)
-      delBtn.onclick = () => {
-          alert("מחיקה מרובה אינה מופעלת כרגע.");
-          // Future implementation might involve selecting groups and then deleting.
-      };
+      // Delete button functionality is now handled inside the edit form's click listener
 
       // --- Import/Export Logic ---
       importBtn.onclick = () => {
@@ -679,6 +670,7 @@
               const validIndices = allGroups
                   .map(g => g.originalIndex)
                   .filter(idx => typeof idx === "number" && !isNaN(idx));
+
               // Start from 0 if no groups exist, otherwise from max index + 1
               let nextIdx = validIndices.length > 0 ? Math.max(...validIndices) + 1 : 0;
               if (isNaN(nextIdx)) { // Safety check
@@ -807,7 +799,6 @@
           const displayTopic = g.topic || '[חסר נושא]';
           // --- Use helper function for difficulty text ---
           const displayLevelText = getDifficultyText(g.difficulty);
-
           // Apply styling for missing info
           const titleClass = g.title ? 'font-semibold' : 'font-semibold missing-info';
           const topicClass = g.topic ? '' : 'missing-info';
@@ -815,7 +806,7 @@
           const levelClass = g.difficulty ? '' : 'missing-info';
 
           // --- Edit button: make smaller (text-sm) and ensure space after (mr-2) ---
-          const editBtnHTML = `<button data-original-idx="${g.originalIndex}" class="editBtn text-blue-500 hover:text-blue-700 text-sm flex-shrink-0 mr-2 ml-0" title="ערוך קבוצה זו">✏️</button>`; // Added text-sm
+          const editBtnHTML = `<button data-original-idx="${g.originalIndex}" class="editBtn text-blue-500 hover:text-blue-700 text-sm flex-shrink-0 mr-2 ml-0" title="ערוך קבוצה זו">✏️</button>`;
 
           // Generate sentence list HTML
           const sentencesHTML = g.sentences && Array.isArray(g.sentences) && g.sentences.length > 0
@@ -837,11 +828,11 @@
                       <ol class="sentences-list">
                           ${sentencesHTML}
                       </ol>
-                 </article>`;
+                  </article>`;
       }
       // *** END UPDATED renderSingleGroupView function ***
 
-      // Generates HTML for the Edit/Add Form
+      // === MODIFIED: Generates HTML for the Edit/Add Form with Delete Button ===
       function editForm(g) {
           // Use the buffer if adding new, otherwise use the passed group 'g'
           const data = isAddingNewGroup ? newGroupDataBuffer : g;
@@ -849,7 +840,6 @@
 
           // Generate sentence rows for the form
           const rows = (data.sentences || []).map(s => rowHTML(s.text || "", !s.movable, s.id)).join("");
-
           const currentTitle = data.title || "";
           const currentTopic = data.topic || "כללי"; // Default topic if missing
           const formTitle = isAddingNewGroup ? "הוספת קבוצה חדשה" : `עריכת קבוצה (ID מקורי: ${originalIdx})`;
@@ -870,7 +860,7 @@
                       <label class="block">
                           נושא:
                           <select id="topicInput" class="p-1 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
-                              ${TOPICS.map( t => `<option value="${t}" ${t === currentTopic ? "selected" : ""}>${t}</option>`).join("")}
+                             ${TOPICS.map( t => `<option value="${t}" ${t === currentTopic ? "selected" : ""}>${t}</option>`).join("")}
                           </select>
                       </label>
                   </div>
@@ -882,12 +872,16 @@
                       ➕ הוסף משפט
                   </button>
                   <div class="flex justify-between mt-6">
-                      <button type="button" id="cancelBtn" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">ביטול</button>
-                      <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">שמור וסגור</button>
+                      <button type="button" id="deleteBtnInForm" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 ${isAddingNewGroup ? 'hidden' : ''}" title="מחק קבוצה זו לצמיתות">🗑️ מחק קבוצה</button>
+                      <div class="flex gap-2">
+                          <button type="button" id="cancelBtn" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">ביטול</button>
+                          <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">שמור וסגור</button>
+                      </div>
                   </div>
               </form>
           </div>`;
       }
+      // === END MODIFIED editForm Function ===
 
       // Main Render Function: Decides whether to show message, group list, or edit form
       function render() {
@@ -952,7 +946,7 @@
            newBtn.disabled = disableAdminActions;
            importBtn.disabled = disableAdminActions;
            exportBtn.disabled = disableAdminActions || allGroups.length === 0; // Disable export if no groups at all
-           delBtn.disabled = true; // Keep delete disabled as per requirement
+           // delBtn reference removed
        }
 
        // Navigate to a specific page
@@ -1010,8 +1004,8 @@
           setTimeout(() => updateStatusMessage(), 1500); // Clear "Cancelled" message after a bit
       }
 
-      // Event delegation for clicks within the main container
-      container.addEventListener("click", (e) => {
+      // === MODIFIED: Event delegation for clicks within the main container (Handles Delete Button) ===
+      container.addEventListener("click", async (e) => { // Added async for await
            // --- Handle Edit Button Click ---
            const editButton = e.target.closest('.editBtn'); // Find closest edit button ancestor
            if (editButton) {
@@ -1032,8 +1026,7 @@
                    document.body.classList.add('editing');
                    updateAdminUI(); // Render edit form and update controls
                } else {
-                   statusEl.innerText = "שגיאה: הקבוצה שנבחרה לעריכה לא נמצאה בנתונים.";
-                   // Data might be out of sync? Listener should update soon.
+                   statusEl.innerText = "שגיאה: הקבוצה שנבחרה לעריכה לא נמצאה בנתונים."; // Data might be out of sync? Listener should update soon.
                }
                return; // Handled edit button click
            }
@@ -1083,8 +1076,42 @@
                    }
                    return;
                }
+
+                // --- NEW: Handle Delete Button Click In Form ---
+                if (e.target.id === "deleteBtnInForm") {
+                    if (isAddingNewGroup || typeof originalIdx !== 'number' || originalIdx < 0) {
+                        console.error("Invalid state for deletion:", { isAddingNewGroup, originalIdx });
+                        statusEl.innerText = "שגיאה: לא ניתן למחוק במצב זה.";
+                        setTimeout(() => updateStatusMessage(), 3000);
+                        return;
+                    }
+
+                    // Confirmation Dialog
+                    if (confirm(`האם אתה בטוח שברצונך למחוק את קבוצה "${document.getElementById('titleInput')?.value || 'זו'}" (ID: ${originalIdx}) לצמיתות? אין דרך לשחזר פעולה זו.`)) {
+                        statusEl.innerText = `מוחק את קבוצה ${originalIdx}...`;
+                        const groupRef = ref(db, `collections/groups/${originalIdx}`);
+                        try {
+                            await remove(groupRef); // Use remove function
+                            statusEl.innerText = `קבוצה ${originalIdx} נמחקה בהצלחה.`;
+                            // originalIdx is reset inside cancelEditOrAdd
+                            cancelEditOrAdd(); // Close form and refresh UI
+                            setTimeout(() => updateStatusMessage(), 3000); // Clear message later
+                        } catch (error) {
+                            console.error("Error deleting group:", originalIdx, error);
+                            statusEl.innerText = `שגיאה במחיקת קבוצה ${originalIdx}: ${error.message}`;
+                            // Don't close the form on error, allow user to retry or cancel
+                        }
+                    } else {
+                        statusEl.innerText = "מחיקה בוטלה.";
+                        setTimeout(() => updateStatusMessage(), 2000);
+                    }
+                    return; // Handled delete button click
+                }
+
            } // End of edit-mode actions
-       }); // End of container click handler
+      }); // End of container click handler
+      // === END MODIFIED Click Handler ===
+
 
       // --- Edit Form Submit Handler ---
       container.addEventListener("submit", async (e) => {
@@ -1147,7 +1174,7 @@
           }
           if (sentences.length === 0) {
               statusEl.innerText = "חובה להזין לפחות משפט אחד תקין בקבוצה.";
-               // Optional: Highlight the sentences area
+              // Optional: Highlight the sentences area
               document.getElementById('sentences-container')?.animate([{ outline: "2px solid red" }, { outline: "none" }], { duration: 600 });
               setTimeout(() => updateStatusMessage(), 3000);
               return;
@@ -1167,7 +1194,6 @@
                   const validIndices = allGroups.map(g => g.originalIndex).filter(idx => typeof idx === "number" && !isNaN(idx));
                   indexToSaveAt = validIndices.length > 0 ? Math.max(...validIndices) + 1 : 0;
                   if (isNaN(indexToSaveAt)) throw new Error("חישוב אינדקס לקבוצה חדשה נכשל.");
-
                   savePath = ref(db, `collections/groups/${indexToSaveAt}`);
                   // Include the calculated originalIndex in the data being saved
                   finalGroupData = { ...finalGroupDataBase, originalIndex: indexToSaveAt };
@@ -1176,7 +1202,7 @@
                   // Editing an existing group: use the stored originalIdx
                    if (typeof originalIdx !== "number" || isNaN(originalIdx) || originalIdx < 0) {
                       throw new Error(`אינדקס מקורי לא תקין לעריכה: ${originalIdx}`);
-                  }
+                   }
                   indexToSaveAt = originalIdx;
                   savePath = ref(db, `collections/groups/${indexToSaveAt}`);
                   // Include originalIndex in the update data as well for consistency
@@ -1186,7 +1212,6 @@
               }
 
               console.log(`Saving to index: ${indexToSaveAt}`, finalGroupData);
-
               // Execute the save operation
               await savePromise;
 
@@ -1198,7 +1223,7 @@
               // <<< CHANGE: After cancel, ensure the correct page is displayed >>>
               // We need to potentially reset currentPage *after* cancelEditOrAdd has finished its UI updates
               // Use a small timeout or directly call render/updateNav again after setting page
-               setTimeout(() => {
+              setTimeout(() => {
                    if (!wasAdding && filteredGroups.length > 0) {
                        totalPages = Math.ceil(filteredGroups.length / ITEMS_PER_PAGE) || 1;
                        currentPage = Math.max(1, Math.min(pageToReturnTo, totalPages)); // Go back to the saved page, ensure it's valid
